@@ -24,6 +24,11 @@ function App() {
   >([]);
   const [clientsError, setClientsError] = useState<string | null>(null);
 
+  const [grossSalary, setGrossSalary] = useState(18000);
+  const [isrMonthlyEstimate, setIsrMonthlyEstimate] = useState(1200);
+  const [payrollResult, setPayrollResult] = useState<any>(null);
+  const [payrollError, setPayrollError] = useState<string | null>(null);
+
   useEffect(() => {
     setToken(jwt);
   }, [jwt]);
@@ -72,13 +77,30 @@ function App() {
     }
   }
 
+  async function calculatePayroll() {
+    setPayrollError(null);
+    try {
+      const res = await apiPost<{ data: any }>(`/api/payroll/calculate`, {
+        salaryType: "MONTHLY",
+        grossSalary: Number(grossSalary),
+        daysInPeriod: 15,
+        integrationFactor: 1.0452,
+        umaDaily: 108.57,
+        isrMonthlyEstimate: Number(isrMonthlyEstimate),
+      });
+      setPayrollResult(res.data);
+    } catch (e) {
+      setPayrollError(e instanceof Error ? e.message : "Error");
+    }
+  }
+
   return (
     <div className="min-h-screen">
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
           <div className="flex items-center gap-3">
             <div className="grid size-10 place-items-center rounded-xl bg-ink-950 text-white">
-              <ShieldCheck className="size-5" aria-hidden="true" />
+              <ShieldCheck className="size-5" aria-hidden={true} />
             </div>
             <div className="leading-tight">
               <div className="text-sm text-slate-500">Contadores Unidos MX</div>
@@ -98,7 +120,7 @@ function App() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 font-semibold text-slate-900">
-                <Lock className="size-4" aria-hidden="true" />
+                <Lock className="size-4" aria-hidden={true} />
                 Acceso (JWT)
               </div>
               <div className="mt-1 text-sm text-slate-600">
@@ -253,6 +275,62 @@ function App() {
             </table>
           </div>
         </section>
+
+        <section className="mt-6 rounded-2xl border bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div className="font-semibold text-slate-900">Nómina quincenal (MVP)</div>
+            <button
+              className="h-9 rounded-xl bg-ink-950 px-3 text-sm font-medium text-white disabled:opacity-60"
+              onClick={calculatePayroll}
+              disabled={!isAuthed}
+              title={!isAuthed ? "Primero inicia sesión" : "Calcular"}
+            >
+              Calcular
+            </button>
+          </div>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <label className="grid gap-1">
+              <span className="text-xs font-medium text-slate-700">Sueldo mensual bruto</span>
+              <input
+                className="h-10 rounded-xl border px-3 text-sm outline-none focus:border-slate-400"
+                value={grossSalary}
+                onChange={(e) => setGrossSalary(Number(e.target.value))}
+                type="number"
+                min={0}
+              />
+            </label>
+            <label className="grid gap-1">
+              <span className="text-xs font-medium text-slate-700">ISR mensual (estimado)</span>
+              <input
+                className="h-10 rounded-xl border px-3 text-sm outline-none focus:border-slate-400"
+                value={isrMonthlyEstimate}
+                onChange={(e) => setIsrMonthlyEstimate(Number(e.target.value))}
+                type="number"
+                min={0}
+              />
+            </label>
+            <div className="rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-700">
+              <div className="text-xs text-slate-500">Endpoint</div>
+              <code className="rounded bg-white px-2 py-1">POST /api/payroll/calculate</code>
+            </div>
+          </div>
+          {payrollError ? (
+            <div className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-800">
+              {payrollError}
+            </div>
+          ) : null}
+          {payrollResult ? (
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <Stat label="Bruto quincenal" value={`$${payrollResult.gross.period}`} />
+              <Stat label="IMSS trabajador" value={`$${payrollResult.imss.employeeContrib.total}`} />
+              <Stat label="Neto estimado" value={`$${payrollResult.netEstimate}`} />
+            </div>
+          ) : (
+            <div className="mt-3 text-sm text-slate-600">
+              Calcula para ver desglose (IMSS aproximado + subsidio MVP).
+            </div>
+          )}
+        </section>
       </main>
     </div>
   );
@@ -271,13 +349,22 @@ function ModuleCard({
     <div className="rounded-2xl border bg-white p-5 shadow-sm">
       <div className="flex items-start gap-3">
         <div className="grid size-10 place-items-center rounded-xl bg-slate-100 text-slate-900">
-          <Icon className="size-5" aria-hidden="true" />
+          <Icon className="size-5" aria-hidden={true} />
         </div>
         <div className="min-w-0">
           <div className="font-semibold text-slate-900">{title}</div>
           <div className="mt-1 text-sm text-slate-600">{desc}</div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border bg-white p-4">
+      <div className="text-xs text-slate-500">{label}</div>
+      <div className="mt-1 text-lg font-semibold text-slate-900">{value}</div>
     </div>
   );
 }

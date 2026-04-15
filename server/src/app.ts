@@ -7,6 +7,7 @@ import { errorHandler } from "./http/middlewares/errorHandler";
 import { authRouter } from "./http/routes/auth.routes";
 import { clientsRouter } from "./http/routes/clients.routes";
 import { healthRouter } from "./http/routes/health.routes";
+import { payrollRouter } from "./http/routes/payroll.routes";
 
 export const app = express();
 
@@ -27,6 +28,7 @@ app.get("/", (_req, res) => {
 app.use("/api", authRouter);
 app.use("/api", healthRouter);
 app.use("/api", clientsRouter);
+app.use("/api", payrollRouter);
 
 app.use(errorHandler);
 

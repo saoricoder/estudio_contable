@@ -75,6 +75,13 @@ Para endpoints protegidos, enviar header:
 - `PATCH /api/clients/:id`
 - `DELETE /api/clients/:id`
 
+### Nóminas quincenales (protegido)
+
+- `POST /api/payroll/calculate`
+  - body (ejemplo):
+    - `{ "salaryType": "MONTHLY", "grossSalary": 18000, "daysInPeriod": 15, "integrationFactor": 1.0452, "umaDaily": 108.57, "isrMonthlyEstimate": 1200 }`
+  - response: `{ data: { gross, imss, subsidy, netEstimate, disclaimers } }`
+
 ## Despliegue en Vercel
 
 El repo incluye `vercel.json`:
