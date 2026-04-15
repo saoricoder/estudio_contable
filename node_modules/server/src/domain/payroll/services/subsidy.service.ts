@@ -3,36 +3,57 @@ export type SubsidyResult = {
   note: string;
 };
 
-// MVP: Subsidio al empleo requiere tabla oficial por periodo (mensual/quincenal).
-// Para no bloquear el desarrollo, implementamos:
-// - si se provee isrMonthlyEstimate => subsidio = min(isr, subsidyEstimateByIncome)
-// - tabla placeholder (ajustable) basada en rangos típicos (no oficial).
+// Subsidio para el empleo 2026 (Decreto DOF 31/12/2025):
+// - Aplica si ingreso mensual gravable <= 11,492.66
+// - Monto mensual:
+//   - Enero 2026 (transitorio): 536.21
+//   - Feb-Dic 2026: 535.65
+// - Para periodos menores a mes: (monto_mensual / 30.4) * días del periodo
 export class SubsidyService {
-  estimateMonthlySubsidy(params: { monthlyIncome: number }) {
-    const x = params.monthlyIncome;
+  private incomeLimitMonthly = 11492.66;
 
-    // Tabla simplificada NO OFICIAL para MVP (valores ejemplo).
-    // Reemplazar por tabla SAT vigente cuando cerremos el módulo fiscal.
-    if (x <= 7000) return 390.0;
-    if (x <= 9000) return 250.0;
-    if (x <= 11000) return 150.0;
-    if (x <= 13000) return 50.0;
-    return 0;
+  private monthlyAmount(payDate?: Date) {
+    if (!payDate) return 535.65;
+    const y = payDate.getUTCFullYear();
+    const m = payDate.getUTCMonth() + 1;
+    if (y === 2026 && m === 1) return 536.21;
+    return 535.65;
   }
 
-  applyAgainstIsr(params: { isrMonthlyEstimate?: number; monthlyIncome: number }): SubsidyResult {
+  calculatePeriodSubsidy(params: {
+    monthlyIncome: number;
+    daysInPeriod: number;
+    payDate?: Date;
+  }) {
+    if (params.monthlyIncome > this.incomeLimitMonthly) return 0;
+    const monthly = this.monthlyAmount(params.payDate);
+    return round2((monthly / 30.4) * params.daysInPeriod);
+  }
+
+  applyAgainstIsr(params: {
+    isrMonthlyEstimate?: number;
+    monthlyIncome: number;
+    daysInPeriod: number;
+    payDate?: Date;
+  }): SubsidyResult {
     if (params.isrMonthlyEstimate == null) {
       return {
         subsidyApplied: 0,
-        note: "ISR no proporcionado; subsidio no aplicado (solo estimación disponible).",
+        note: "ISR no proporcionado; subsidio no aplicado contra ISR (solo cálculo de IMSS).",
       };
     }
 
-    const estimate = this.estimateMonthlySubsidy({ monthlyIncome: params.monthlyIncome });
-    const subsidyApplied = round2(Math.min(params.isrMonthlyEstimate, estimate));
+    const periodSubsidy = this.calculatePeriodSubsidy({
+      monthlyIncome: params.monthlyIncome,
+      daysInPeriod: params.daysInPeriod,
+      payDate: params.payDate,
+    });
+
+    // Aplicación: no puede exceder el ISR del mes (estimado). Para quincena, aplicamos el proporcional calculado.
+    const subsidyApplied = round2(Math.min(params.isrMonthlyEstimate, periodSubsidy));
     return {
       subsidyApplied,
-      note: estimate === 0 ? "Sin subsidio estimado para este nivel de ingreso." : "Subsidio aplicado contra ISR estimado (tabla MVP).",
+      note: subsidyApplied === 0 ? "Sin subsidio aplicable (ingreso excede límite o ISR=0)." : "Subsidio aplicado (2026).",
     };
   }
 }

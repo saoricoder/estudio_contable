@@ -79,8 +79,10 @@ Para endpoints protegidos, enviar header:
 
 - `POST /api/payroll/calculate`
   - body (ejemplo):
-    - `{ "salaryType": "MONTHLY", "grossSalary": 18000, "daysInPeriod": 15, "integrationFactor": 1.0452, "umaDaily": 108.57, "isrMonthlyEstimate": 1200 }`
+    - `{ "salaryType": "MONTHLY", "grossSalary": 18000, "daysInPeriod": 15, "integrationFactor": 1.0452, "umaDaily": 113.14, "payDate": "2026-04-15T00:00:00.000Z", "isrMonthlyEstimate": 1200 }`
   - response: `{ data: { gross, imss, subsidy, netEstimate, disclaimers } }`
+  - IMSS (cuota obrera): EM dinero, EM GMP, EM excedente 3 UMA, IV, CV (tope SBC 25 UMA).
+  - Subsidio 2026: prorrateo mensual/30.4 con límite de ingreso mensual.
 
 ### Facturación (recurrente) (protegido)
 
@@ -120,6 +122,7 @@ Para endpoints protegidos, enviar header:
 - `GET /api/alerts`
   - query opcional: `daysAhead` (default 30)
   - semáforo: `GREEN` (>5 días), `YELLOW` (<=5 días), `RED` (vencido/OVERDUE)
+  - incluye alertas por declaraciones registradas y un calendario mensual MVP (vencimiento día 17) por cliente.
 
 ### Reportes (PDF) (protegido)
 
@@ -137,4 +140,11 @@ El repo incluye `vercel.json`:
 - **Static Build**: `client/` (output `client/dist`)
 
 En Vercel configura las env vars (al menos `DATABASE_URL` y `JWT_SECRET`).
+
+## UI (MVP)
+
+La app ahora usa rutas (React Router):
+
+- `/clients` Clientes (CRUD mínimo)
+- Resto de módulos: navegación lista; UI completa seguirá iterándose sobre los endpoints ya existentes.
 

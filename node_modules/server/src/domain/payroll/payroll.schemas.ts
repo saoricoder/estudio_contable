@@ -8,7 +8,9 @@ export const payrollCalculateSchema = z.object({
   // Para aproximación del IMSS
   integrationFactor: z.number().min(1).max(2).default(1.0452),
   // Parámetros ajustables (UMA y tabla subsidio pueden cambiar por año)
-  umaDaily: z.number().positive().default(108.57),
+  umaDaily: z.number().positive().default(113.14),
+  // Fecha de pago para aplicar reglas vigentes (ej. subsidio enero 2026)
+  payDate: z.string().datetime().optional(),
   // Cuando aplique: ISR mensual aproximado (para subsidio). Lo dejamos como opcional.
   isrMonthlyEstimate: z.number().min(0).optional(),
 });

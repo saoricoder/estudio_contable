@@ -2,7 +2,9 @@ export type ImssResult = {
   sbcDaily: number;
   sbcPeriod: number;
   employeeContrib: {
-    enfermedadMaternidad: number;
+    emDinero: number;
+    emGmp: number;
+    emExcedente: number;
     invalidezVida: number;
     cesantiaVejez: number;
     total: number;
@@ -13,36 +15,47 @@ export type ImssResult = {
   };
 };
 
-// Nota: IMSS real requiere tablas y topes por UMA, RT, guarderías, Infonavit, etc.
-// MVP: aproximación enfocada a "descuento trabajador" con tasas comunes.
+// IMSS (cuota obrera) - cálculo formal base:
+// - Prestaciones en dinero (EM): 0.25% sobre SBC
+// - Gastos médicos pensionados (EM): 0.375% sobre SBC
+// - Excedente de 3 UMA (EM): 0.40% sobre (SBC - 3 UMA) cuando SBC > 3 UMA
+// - Invalidez y Vida: 0.625% sobre SBC
+// - Cesantía y Vejez: 1.125% sobre SBC
+// Topes: SBC máximo 25 UMA (LSS).
 export class ImssService {
   calculateEmployeeContrib(params: {
     sbcDaily: number;
     daysInPeriod: number;
     umaDaily: number;
   }): ImssResult {
-    const { sbcDaily, daysInPeriod } = params;
+    const { sbcDaily, daysInPeriod, umaDaily } = params;
 
-    // Tasas aproximadas (trabajador) usadas comúnmente como baseline:
-    // - Enfermedad y maternidad (prestaciones en dinero): 0.25%
-    // - Invalidez y vida: 0.625%
-    // - Cesantía y vejez: 1.125%
-    // (No incluye excedente 3 UMA ni otras partidas; se agregará cuando modulemos nómina completa)
-    const tEM = 0.0025;
+    const sbcDailyCapped = Math.min(sbcDaily, 25 * umaDaily);
+    const basePeriod = sbcDailyCapped * daysInPeriod;
+
+    const tEmDinero = 0.0025;
+    const tEmGmp = 0.00375;
+    const tEmExcedente = 0.004;
     const tIV = 0.00625;
     const tCV = 0.01125;
 
-    const basePeriod = sbcDaily * daysInPeriod;
-    const enfermedadMaternidad = round2(basePeriod * tEM);
+    const excedenteDaily = Math.max(0, sbcDailyCapped - 3 * umaDaily);
+    const excedentePeriod = excedenteDaily * daysInPeriod;
+
+    const emDinero = round2(basePeriod * tEmDinero);
+    const emGmp = round2(basePeriod * tEmGmp);
+    const emExcedente = round2(excedentePeriod * tEmExcedente);
     const invalidezVida = round2(basePeriod * tIV);
     const cesantiaVejez = round2(basePeriod * tCV);
-    const total = round2(enfermedadMaternidad + invalidezVida + cesantiaVejez);
+    const total = round2(emDinero + emGmp + emExcedente + invalidezVida + cesantiaVejez);
 
     return {
-      sbcDaily: round2(sbcDaily),
+      sbcDaily: round2(sbcDailyCapped),
       sbcPeriod: round2(basePeriod),
       employeeContrib: {
-        enfermedadMaternidad,
+        emDinero,
+        emGmp,
+        emExcedente,
         invalidezVida,
         cesantiaVejez,
         total,

@@ -22,16 +22,16 @@ export class PayrollService {
       umaDaily: input.umaDaily,
     });
 
+    const payDate = input.payDate ? new Date(input.payDate) : undefined;
     const subsidy = this.subsidy.applyAgainstIsr({
       isrMonthlyEstimate: input.isrMonthlyEstimate,
       monthlyIncome: monthlyGross,
+      daysInPeriod: input.daysInPeriod,
+      payDate,
     });
 
-    // Neto MVP: bruto del periodo - IMSS trabajador + subsidio aplicado (si hubo ISR estimado)
-    const net =
-      subsidy.subsidyApplied > 0
-        ? round2(periodGross - imss.employeeContrib.total + subsidy.subsidyApplied / 2)
-        : round2(periodGross - imss.employeeContrib.total);
+    // Neto (MVP formal): bruto del periodo - IMSS trabajador + subsidio aplicado (si procede)
+    const net = round2(periodGross - imss.employeeContrib.total + subsidy.subsidyApplied);
 
     return {
       input,
@@ -44,8 +44,8 @@ export class PayrollService {
       subsidy,
       netEstimate: net,
       disclaimers: [
-        "IMSS: cálculo MVP aproximado (no incluye todas las partidas/topes).",
-        "Subsidio: tabla MVP no oficial; se reemplazará por tabla SAT vigente.",
+        "IMSS (cuota obrera): incluye EM dinero, EM GMP, EM excedente 3 UMA, IV y CV; tope SBC 25 UMA. No incluye INFONAVIT ni aportación patronal completa.",
+        "Subsidio 2026: aplica tope y monto mensual decretado; para periodos menores a mes se prorratea con 30.4 días.",
       ],
     };
   }
