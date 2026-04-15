@@ -76,6 +76,7 @@ model BankMovement {
   amount      Decimal         @db.Decimal(14, 2) // + ingreso, - egreso
   type        BankEntryType
   source      BankEntrySource @default(BOOK)
+  category    String?
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 

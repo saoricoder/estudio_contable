@@ -11,16 +11,26 @@ class FinancialHealthService {
                 date: { gte: start, lt: end },
                 match: { isNot: null },
             },
-            select: { amount: true, type: true },
+            select: { amount: true, type: true, category: true },
         });
         let income = 0;
         let expenses = 0;
+        const cat = new Map();
         for (const m of matched) {
             const amount = toNumber(m.amount);
-            if (m.type === "CREDIT")
-                income += Math.abs(amount);
-            else
-                expenses += Math.abs(amount);
+            const key = (m.category ?? "Sin categoría").trim() || "Sin categoría";
+            const agg = cat.get(key) ?? { income: 0, expenses: 0 };
+            if (m.type === "CREDIT") {
+                const v = Math.abs(amount);
+                income += v;
+                agg.income += v;
+            }
+            else {
+                const v = Math.abs(amount);
+                expenses += v;
+                agg.expenses += v;
+            }
+            cat.set(key, agg);
         }
         income = round2(income);
         expenses = round2(expenses);
@@ -30,6 +40,15 @@ class FinancialHealthService {
             expenses,
             net: round2(income - expenses),
             matchedCount: matched.length,
+            byCategory: [...cat.entries()]
+                .map(([category, v]) => ({
+                category,
+                income: round2(v.income),
+                expenses: round2(v.expenses),
+                net: round2(v.income - v.expenses),
+            }))
+                .sort((a, b) => Math.abs(b.net) - Math.abs(a.net))
+                .slice(0, 8),
         };
     }
 }

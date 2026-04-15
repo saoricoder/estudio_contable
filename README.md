@@ -96,6 +96,8 @@ Para endpoints protegidos, enviar header:
 - `GET /api/banking/movements` (movimientos internos / libro)
 - `POST /api/banking/movements`
   - body: `{ "date": "2026-04-01T00:00:00.000Z", "description": "Pago proveedor", "reference?": "REF123", "amount": -1500.5, "type": "DEBIT" }`
+- `PATCH /api/banking/movements/:id/category`
+  - body: `{ "category": "Impuestos" }` o `{ "category": null }` para limpiar
 - `GET /api/banking/statements` (líneas de estado de cuenta)
 - `POST /api/banking/statements`
   - body: `{ "date": "2026-04-01T00:00:00.000Z", "description": "SPEI a proveedor", "reference?": "SPEI999", "amount": -1500.5, "type": "DEBIT" }`
@@ -124,6 +126,7 @@ Para endpoints protegidos, enviar header:
 - `GET /api/reports/financial-health.pdf?month=YYYY-MM`
   - genera un PDF de “Salud Financiera” comparando ingresos vs gastos del mes.
   - base MVP: movimientos bancarios **conciliados** del mes.
+  - incluye **desglose por categoría (Top 8)** usando `BankMovement.category`.
 
 ## Despliegue en Vercel
 

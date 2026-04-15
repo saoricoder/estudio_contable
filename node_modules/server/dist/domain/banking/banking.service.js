@@ -90,5 +90,20 @@ class BankingService {
         await prisma_1.prisma.bankReconciliationMatch.delete({ where: { id: match.id } });
         return { ok: true };
     }
+    async setMovementCategory(params) {
+        const existing = await prisma_1.prisma.bankMovement.findUnique({
+            where: { id: params.movementId },
+            select: { id: true },
+        });
+        if (!existing) {
+            const err = new Error("Movement not found");
+            err.status = 404;
+            throw err;
+        }
+        return prisma_1.prisma.bankMovement.update({
+            where: { id: params.movementId },
+            data: { category: params.category },
+        });
+    }
 }
 exports.BankingService = BankingService;

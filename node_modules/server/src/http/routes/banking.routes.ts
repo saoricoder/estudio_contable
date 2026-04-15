@@ -4,6 +4,7 @@ import { validateBody } from "../middlewares/validateBody";
 import {
   matchCreateSchema,
   movementCreateSchema,
+  movementCategoryUpdateSchema,
   statementLineCreateSchema,
 } from "../../domain/banking/banking.schemas";
 import { BankingService } from "../../domain/banking/banking.service";
@@ -29,6 +30,23 @@ bankingRouter.post(
     try {
       const data = await bankingService.createMovement(req.body);
       res.status(201).json({ data });
+    } catch (e) {
+      next(e);
+    }
+  },
+);
+
+bankingRouter.patch(
+  "/banking/movements/:id/category",
+  validateBody(movementCategoryUpdateSchema),
+  async (req, res, next) => {
+    try {
+      const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+      const data = await bankingService.setMovementCategory({
+        movementId: id,
+        category: req.body.category,
+      });
+      res.json({ data });
     } catch (e) {
       next(e);
     }

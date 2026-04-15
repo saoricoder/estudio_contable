@@ -23,3 +23,8 @@ export const matchCreateSchema = z.object({
   statementLineId: z.string().uuid(),
 });
 
+export const movementCategoryUpdateSchema = z.object({
+  // null para limpiar categoría
+  category: z.string().min(2).max(40).nullable(),
+});
+

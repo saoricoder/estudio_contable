@@ -30,6 +30,14 @@ export function buildFinancialHealthPdf(params: {
   statBox(doc, 48 + (boxW + gap) * 2, boxTop, boxW, "Neto", net, params.summary.net >= 0 ? "#16a34a" : "#dc2626");
 
   doc.moveDown(6);
+
+  doc.fontSize(12).fillColor("#0b1220").text("Desglose por categoría (Top 8)");
+  doc.moveDown(0.5);
+  tableHeader(doc);
+  for (const row of params.summary.byCategory) {
+    tableRow(doc, row.category, money(row.income), money(row.expenses), money(row.net));
+  }
+  doc.moveDown(1);
   doc
     .fontSize(10)
     .fillColor("#64748b")
@@ -45,6 +53,39 @@ export function buildFinancialHealthPdf(params: {
     );
 
   return doc;
+}
+
+function tableHeader(doc: PDFKit.PDFDocument) {
+  const y = doc.y;
+  doc
+    .fontSize(9)
+    .fillColor("#475569")
+    .text("Categoría", 48, y, { width: 240 })
+    .text("Ingresos", 300, y, { width: 90, align: "right" })
+    .text("Gastos", 392, y, { width: 90, align: "right" })
+    .text("Neto", 484, y, { width: 90, align: "right" });
+  doc.moveDown(0.6);
+  doc.moveTo(48, doc.y).lineTo(548, doc.y).strokeColor("#e2e8f0").stroke();
+  doc.moveDown(0.4);
+}
+
+function tableRow(
+  doc: PDFKit.PDFDocument,
+  category: string,
+  income: string,
+  expenses: string,
+  net: string,
+) {
+  const y = doc.y;
+  doc
+    .fontSize(9)
+    .fillColor("#0b1220")
+    .text(category, 48, y, { width: 240 })
+    .fillColor("#0b1220")
+    .text(income, 300, y, { width: 90, align: "right" })
+    .text(expenses, 392, y, { width: 90, align: "right" })
+    .text(net, 484, y, { width: 90, align: "right" });
+  doc.moveDown(0.45);
 }
 
 function statBox(

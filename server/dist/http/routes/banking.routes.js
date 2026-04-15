@@ -27,6 +27,19 @@ exports.bankingRouter.post("/banking/movements", (0, validateBody_1.validateBody
         next(e);
     }
 });
+exports.bankingRouter.patch("/banking/movements/:id/category", (0, validateBody_1.validateBody)(banking_schemas_1.movementCategoryUpdateSchema), async (req, res, next) => {
+    try {
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const data = await bankingService.setMovementCategory({
+            movementId: id,
+            category: req.body.category,
+        });
+        res.json({ data });
+    }
+    catch (e) {
+        next(e);
+    }
+});
 exports.bankingRouter.get("/banking/statements", async (_req, res, next) => {
     try {
         const data = await bankingService.listStatements();

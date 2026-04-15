@@ -140,6 +140,25 @@ function App() {
     }
   }
 
+  async function setMovementCategory(movementId: string, category: string | null) {
+    setBankingError(null);
+    try {
+      const res = await fetch(`/api/banking/movements/${movementId}/category`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeader(),
+        },
+        body: JSON.stringify({ category }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error?.message ?? "No se pudo actualizar categoría");
+      await loadBanking();
+    } catch (e) {
+      setBankingError(e instanceof Error ? e.message : "Error");
+    }
+  }
+
   async function matchSelected() {
     if (!selectedMovementId || !selectedStatementId) return;
     setBankingError(null);
@@ -492,7 +511,7 @@ function App() {
                 <tbody>
                   {movements.length === 0 ? (
                     <tr>
-                      <td className="py-3 px-4 text-slate-500" colSpan={5}>
+                      <td className="py-3 px-4 text-slate-500" colSpan={6}>
                         Sin datos.
                       </td>
                     </tr>
@@ -515,6 +534,27 @@ function App() {
                         <td className="py-2 pr-3 text-slate-700">{m.description}</td>
                         <td className="py-2 pr-3 font-mono text-xs text-slate-700">
                           {String(m.amount)}
+                        </td>
+                        <td className="py-2 pr-3">
+                          <select
+                            className="h-8 rounded-lg border bg-white px-2 text-xs"
+                            value={m.category ?? ""}
+                            onChange={(e) =>
+                              setMovementCategory(m.id, e.target.value ? e.target.value : null)
+                            }
+                            disabled={!m.match}
+                            title={!m.match ? "Concílialo primero para categorizar" : "Categoría"}
+                          >
+                            <option value="">Sin categoría</option>
+                            <option value="Ventas">Ventas</option>
+                            <option value="Servicios">Servicios</option>
+                            <option value="Nómina">Nómina</option>
+                            <option value="Renta">Renta</option>
+                            <option value="Impuestos">Impuestos</option>
+                            <option value="Comisiones bancarias">Comisiones bancarias</option>
+                            <option value="Proveedores">Proveedores</option>
+                            <option value="Otros">Otros</option>
+                          </select>
                         </td>
                         <td className="py-2 pr-3">
                           {m.match ? (
@@ -546,6 +586,7 @@ function App() {
                     <th className="py-2 pr-3">Fecha</th>
                     <th className="py-2 pr-3">Descripción</th>
                     <th className="py-2 pr-3">Monto</th>
+                    <th className="py-2 pr-3">Categoría</th>
                     <th className="py-2 pr-3">Match</th>
                   </tr>
                 </thead>
@@ -661,7 +702,7 @@ function App() {
                 <tbody>
                   {declarations.length === 0 ? (
                     <tr>
-                      <td className="py-3 px-4 text-slate-500" colSpan={5}>
+                      <td className="py-3 px-4 text-slate-500" colSpan={6}>
                         Sin datos.
                       </td>
                     </tr>
