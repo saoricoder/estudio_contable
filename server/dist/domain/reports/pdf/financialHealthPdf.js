@@ -25,11 +25,25 @@ function buildFinancialHealthPdf(params) {
     statBox(doc, 48 + boxW + gap, boxTop, boxW, "Gastos", expenses, "#dc2626");
     statBox(doc, 48 + (boxW + gap) * 2, boxTop, boxW, "Neto", net, params.summary.net >= 0 ? "#16a34a" : "#dc2626");
     doc.moveDown(6);
+    doc.fontSize(12).fillColor("#0b1220").text("Tendencia (3 meses)");
+    doc.moveDown(0.5);
+    trendHeader(doc);
+    for (const t of params.summary.trend3m) {
+        trendRow(doc, t.month, money(t.income), money(t.expenses), money(t.net), String(t.matchedCount));
+    }
+    doc.moveDown(1);
     doc.fontSize(12).fillColor("#0b1220").text("Desglose por categoría (Top 8)");
     doc.moveDown(0.5);
     tableHeader(doc);
     for (const row of params.summary.byCategory) {
         tableRow(doc, row.category, money(row.income), money(row.expenses), money(row.net));
+    }
+    doc.moveDown(1);
+    doc.fontSize(12).fillColor("#0b1220").text("Top movimientos conciliados (Top 10)");
+    doc.moveDown(0.5);
+    topMovHeader(doc);
+    for (const m of params.summary.topMovements) {
+        topMovRow(doc, shortDate(m.date), m.category, clamp(m.description, 34), m.type, money(m.amountAbs));
     }
     doc.moveDown(1);
     doc
@@ -42,6 +56,32 @@ function buildFinancialHealthPdf(params) {
         .fillColor("#64748b")
         .text("Nota: este reporte es preliminar y se refinará al integrar clasificación contable, CFDI y reglas fiscales.");
     return doc;
+}
+function trendHeader(doc) {
+    const y = doc.y;
+    doc
+        .fontSize(9)
+        .fillColor("#475569")
+        .text("Mes", 48, y, { width: 80 })
+        .text("Ingresos", 140, y, { width: 100, align: "right" })
+        .text("Gastos", 250, y, { width: 100, align: "right" })
+        .text("Neto", 360, y, { width: 100, align: "right" })
+        .text("#Conc.", 470, y, { width: 78, align: "right" });
+    doc.moveDown(0.6);
+    doc.moveTo(48, doc.y).lineTo(548, doc.y).strokeColor("#e2e8f0").stroke();
+    doc.moveDown(0.4);
+}
+function trendRow(doc, month, income, expenses, net, matchedCount) {
+    const y = doc.y;
+    doc
+        .fontSize(9)
+        .fillColor("#0b1220")
+        .text(month, 48, y, { width: 80 })
+        .text(income, 140, y, { width: 100, align: "right" })
+        .text(expenses, 250, y, { width: 100, align: "right" })
+        .text(net, 360, y, { width: 100, align: "right" })
+        .text(matchedCount, 470, y, { width: 78, align: "right" });
+    doc.moveDown(0.45);
 }
 function tableHeader(doc) {
     const y = doc.y;
@@ -68,6 +108,32 @@ function tableRow(doc, category, income, expenses, net) {
         .text(net, 484, y, { width: 90, align: "right" });
     doc.moveDown(0.45);
 }
+function topMovHeader(doc) {
+    const y = doc.y;
+    doc
+        .fontSize(9)
+        .fillColor("#475569")
+        .text("Fecha", 48, y, { width: 70 })
+        .text("Categoría", 122, y, { width: 110 })
+        .text("Descripción", 236, y, { width: 200 })
+        .text("Tipo", 440, y, { width: 50 })
+        .text("Monto", 492, y, { width: 56, align: "right" });
+    doc.moveDown(0.6);
+    doc.moveTo(48, doc.y).lineTo(548, doc.y).strokeColor("#e2e8f0").stroke();
+    doc.moveDown(0.4);
+}
+function topMovRow(doc, date, category, description, type, amount) {
+    const y = doc.y;
+    doc
+        .fontSize(9)
+        .fillColor("#0b1220")
+        .text(date, 48, y, { width: 70 })
+        .text(category, 122, y, { width: 110 })
+        .text(description, 236, y, { width: 200 })
+        .text(type, 440, y, { width: 50 })
+        .text(amount, 492, y, { width: 56, align: "right" });
+    doc.moveDown(0.45);
+}
 function statBox(doc, x, y, w, label, value, accent) {
     const h = 70;
     doc.roundedRect(x, y, w, h, 10).fillAndStroke("#ffffff", "#e2e8f0");
@@ -85,4 +151,13 @@ function money(n) {
         currency: "MXN",
         maximumFractionDigits: 2,
     }).format(n);
+}
+function shortDate(iso) {
+    // YYYY-MM-DD
+    return iso.slice(0, 10);
+}
+function clamp(s, max) {
+    if (s.length <= max)
+        return s;
+    return s.slice(0, Math.max(0, max - 1)).trimEnd() + "…";
 }

@@ -14,6 +14,28 @@ export type FinancialHealthSummary = {
   }>;
 };
 
+export type FinancialHealthTrendPoint = {
+  month: string; // YYYY-MM
+  income: number;
+  expenses: number;
+  net: number;
+  matchedCount: number;
+};
+
+export type FinancialHealthTopMovement = {
+  id: string;
+  date: string;
+  description: string;
+  type: "CREDIT" | "DEBIT";
+  amountAbs: number;
+  category: string;
+};
+
+export type FinancialHealthDetails = FinancialHealthSummary & {
+  trend3m: FinancialHealthTrendPoint[];
+  topMovements: FinancialHealthTopMovement[];
+};
+
 export class FinancialHealthService {
   async summarize(params: { month: string }) : Promise<FinancialHealthSummary> {
     const { start, end } = monthRange(params.month);
@@ -69,6 +91,47 @@ export class FinancialHealthService {
         .slice(0, 8),
     };
   }
+
+  async details(params: { month: string }): Promise<FinancialHealthDetails> {
+    const summary = await this.summarize(params);
+
+    const trendMonths = prevMonthsInclusive(params.month, 3);
+    const trend3m = await Promise.all(
+      trendMonths.map(async (m) => {
+        const s = await this.summarize({ month: m });
+        return {
+          month: m,
+          income: s.income,
+          expenses: s.expenses,
+          net: s.net,
+          matchedCount: s.matchedCount,
+        };
+      }),
+    );
+
+    const { start, end } = monthRange(params.month);
+    const movements = await prisma.bankMovement.findMany({
+      where: { date: { gte: start, lt: end }, match: { isNot: null } },
+      select: { id: true, date: true, description: true, type: true, amount: true, category: true },
+    });
+
+    const topMovements = movements
+      .map((m) => {
+        const amountAbs = Math.abs(toNumber(m.amount));
+        return {
+          id: m.id,
+          date: m.date.toISOString(),
+          description: m.description,
+          type: m.type,
+          amountAbs: round2(amountAbs),
+          category: (m.category ?? "Sin categoría").trim() || "Sin categoría",
+        } as FinancialHealthTopMovement;
+      })
+      .sort((a, b) => b.amountAbs - a.amountAbs)
+      .slice(0, 10);
+
+    return { ...summary, trend3m, topMovements };
+  }
 }
 
 function monthRange(month: string) {
@@ -81,6 +144,20 @@ function monthRange(month: string) {
   const start = new Date(Date.UTC(y, m - 1, 1, 0, 0, 0));
   const end = new Date(Date.UTC(y, m, 1, 0, 0, 0));
   return { start, end };
+}
+
+function prevMonthsInclusive(month: string, count: number) {
+  // returns [older..month]
+  const [y, m] = month.split("-").map(Number);
+  const res: string[] = [];
+  for (let i = count - 1; i >= 0; i--) {
+    const d = new Date(Date.UTC(y, m - 1, 1, 0, 0, 0));
+    d.setUTCMonth(d.getUTCMonth() - i);
+    const yy = d.getUTCFullYear();
+    const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+    res.push(`${yy}-${mm}`);
+  }
+  return res;
 }
 
 function toNumber(v: any): number {
