@@ -103,6 +103,22 @@ Para endpoints protegidos, enviar header:
   - body: `{ "movementId": "<uuid>", "statementLineId": "<uuid>" }`
 - `DELETE /api/banking/match/movement/:movementId`
 
+### Declaraciones (protegido)
+
+- `GET /api/declarations`
+  - query opcional: `clientId`, `status`
+- `GET /api/declarations/dashboard`
+- `POST /api/declarations`
+  - body (ejemplo):
+    - `{ "clientId": "<uuid>", "type": "PROVISIONAL", "status": "PENDING", "period": "2026-03", "dueDate": "2026-04-17T00:00:00.000Z", "notes": "Provisional marzo" }`
+- `PATCH /api/declarations/:id`
+
+### Alertas (protegido)
+
+- `GET /api/alerts`
+  - query opcional: `daysAhead` (default 30)
+  - semáforo: `GREEN` (>5 días), `YELLOW` (<=5 días), `RED` (vencido/OVERDUE)
+
 ## Despliegue en Vercel
 
 El repo incluye `vercel.json`:

@@ -3,6 +3,8 @@ import {
   BookOpenCheck,
   Building2,
   FileText,
+  Flag,
+  ListChecks,
   Landmark,
   Lock,
   RefreshCcw,
@@ -38,6 +40,10 @@ function App() {
   const [bankingError, setBankingError] = useState<string | null>(null);
   const [selectedMovementId, setSelectedMovementId] = useState<string | null>(null);
   const [selectedStatementId, setSelectedStatementId] = useState<string | null>(null);
+
+  const [declarations, setDeclarations] = useState<any[]>([]);
+  const [alerts, setAlerts] = useState<any[]>([]);
+  const [declError, setDeclError] = useState<string | null>(null);
 
   useEffect(() => {
     setToken(jwt);
@@ -156,6 +162,20 @@ function App() {
       await loadBanking();
     } catch (e) {
       setBankingError(e instanceof Error ? e.message : "Error");
+    }
+  }
+
+  async function loadDeclarationsAndAlerts() {
+    setDeclError(null);
+    try {
+      const [dRes, aRes] = await Promise.all([
+        apiGet<{ data: any[] }>(`/api/declarations`),
+        apiGet<{ data: any[] }>(`/api/alerts?daysAhead=30`),
+      ]);
+      setDeclarations(dRes.data);
+      setAlerts(aRes.data);
+    } catch (e) {
+      setDeclError(e instanceof Error ? e.message : "Error");
     }
   }
 
@@ -535,6 +555,121 @@ function App() {
                           ) : (
                             <span className="text-xs text-slate-500">—</span>
                           )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-6 rounded-2xl border bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 font-semibold text-slate-900">
+              <ListChecks className="size-4" aria-hidden={true} />
+              Declaraciones & alertas
+            </div>
+            <button
+              className="h-9 rounded-xl border px-3 text-sm font-medium text-slate-900 disabled:opacity-60"
+              onClick={loadDeclarationsAndAlerts}
+              disabled={!isAuthed}
+            >
+              Cargar
+            </button>
+          </div>
+          <div className="mt-2 text-sm text-slate-600">
+            Dashboard mínimo: declaraciones registradas y semáforo de vencimientos (30 días).
+          </div>
+          {declError ? (
+            <div className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-800">
+              {declError}
+            </div>
+          ) : null}
+
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <div className="overflow-x-auto rounded-2xl border">
+              <div className="border-b bg-slate-50 px-4 py-2 text-xs font-medium text-slate-600">
+                Declaraciones
+              </div>
+              <table className="w-full min-w-[560px] text-left text-sm">
+                <thead className="text-xs text-slate-500">
+                  <tr className="border-b">
+                    <th className="py-2 px-4">Cliente</th>
+                    <th className="py-2 pr-3">Tipo</th>
+                    <th className="py-2 pr-3">Periodo</th>
+                    <th className="py-2 pr-3">Vence</th>
+                    <th className="py-2 pr-3">Estatus</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {declarations.length === 0 ? (
+                    <tr>
+                      <td className="py-3 px-4 text-slate-500" colSpan={5}>
+                        Sin datos.
+                      </td>
+                    </tr>
+                  ) : (
+                    declarations.slice(0, 15).map((d) => (
+                      <tr key={d.id} className="border-b last:border-b-0">
+                        <td className="py-2 px-4 font-medium text-slate-900">
+                          {d.client?.name ?? d.clientId}
+                        </td>
+                        <td className="py-2 pr-3 text-slate-700">{d.type}</td>
+                        <td className="py-2 pr-3 font-mono text-xs text-slate-700">
+                          {d.period}
+                        </td>
+                        <td className="py-2 pr-3 font-mono text-xs text-slate-700">
+                          {String(d.dueDate)}
+                        </td>
+                        <td className="py-2 pr-3 text-slate-700">{d.status}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border">
+              <div className="border-b bg-slate-50 px-4 py-2 text-xs font-medium text-slate-600">
+                Alertas (semaforo)
+              </div>
+              <table className="w-full min-w-[560px] text-left text-sm">
+                <thead className="text-xs text-slate-500">
+                  <tr className="border-b">
+                    <th className="py-2 px-4">Nivel</th>
+                    <th className="py-2 pr-3">Título</th>
+                    <th className="py-2 pr-3">Vence</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {alerts.length === 0 ? (
+                    <tr>
+                      <td className="py-3 px-4 text-slate-500" colSpan={3}>
+                        Sin alertas.
+                      </td>
+                    </tr>
+                  ) : (
+                    alerts.slice(0, 15).map((a) => (
+                      <tr key={`${a.kind}-${a.declarationId}`} className="border-b last:border-b-0">
+                        <td className="py-2 px-4">
+                          <span
+                            className={
+                              a.level === "RED"
+                                ? "inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-1 text-xs font-medium text-rose-700"
+                                : a.level === "YELLOW"
+                                  ? "inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700"
+                                  : "inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700"
+                            }
+                          >
+                            <Flag className="size-3" aria-hidden={true} />
+                            {a.level}
+                          </span>
+                        </td>
+                        <td className="py-2 pr-3 text-slate-700">{a.title}</td>
+                        <td className="py-2 pr-3 font-mono text-xs text-slate-700">
+                          {String(a.dueDate)}
                         </td>
                       </tr>
                     ))
