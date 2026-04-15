@@ -6,8 +6,12 @@ export function errorHandler(
   res: Response,
   _next: NextFunction,
 ) {
-  // Avoid leaking internal details by default
+  const status =
+    typeof err === "object" && err !== null && "status" in err
+      ? Number((err as any).status)
+      : 500;
+
   const message = err instanceof Error ? err.message : "Unexpected error";
-  res.status(500).json({ error: { message } });
+  res.status(Number.isFinite(status) ? status : 500).json({ error: { message } });
 }
 

@@ -53,6 +53,28 @@ npm run prisma:migrate
 
 - `GET /api/health`: confirma que el backend está arriba.
 
+### Auth (JWT)
+
+- `POST /api/auth/register`
+  - body: `{ "email": "user@dominio.com", "password": "min-8-chars" }`
+  - response: `{ user: { id, email }, token }`
+- `POST /api/auth/login`
+  - body: `{ "email": "user@dominio.com", "password": "..." }`
+  - response: `{ user: { id, email }, token }`
+
+Para endpoints protegidos, enviar header:
+
+- `Authorization: Bearer <token>`
+
+### Clientes (protegido)
+
+- `GET /api/clients`
+- `GET /api/clients/:id`
+- `POST /api/clients`
+  - body: `{ "name": "...", "rfc": "XAXX010101000", "regimen": "601", "email?": "...", "phone?": "..." }`
+- `PATCH /api/clients/:id`
+- `DELETE /api/clients/:id`
+
 ## Despliegue en Vercel
 
 El repo incluye `vercel.json`:

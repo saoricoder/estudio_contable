@@ -4,6 +4,8 @@ import helmet from "helmet";
 import morgan from "morgan";
 import { env } from "./config/env";
 import { errorHandler } from "./http/middlewares/errorHandler";
+import { authRouter } from "./http/routes/auth.routes";
+import { clientsRouter } from "./http/routes/clients.routes";
 import { healthRouter } from "./http/routes/health.routes";
 
 export const app = express();
@@ -22,7 +24,9 @@ app.get("/", (_req, res) => {
   res.json({ ok: true, name: "Estudio Contable Eficiente API" });
 });
 
+app.use("/api", authRouter);
 app.use("/api", healthRouter);
+app.use("/api", clientsRouter);
 
 app.use(errorHandler);
 
