@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { apiGet, apiPost } from "../lib/api";
+import { apiGet, apiPost, authHeader } from "../lib/api";
 
 export function ClientsPage() {
   const [data, setData] = useState<any[]>([]);
@@ -33,6 +33,18 @@ export function ClientsPage() {
         phone: form.phone || undefined,
       });
       setForm({ name: "", rfc: "", regimen: "601", email: "", phone: "" });
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error");
+    }
+  }
+
+  async function remove(id: string) {
+    setError(null);
+    try {
+      const res = await fetch(`/api/clients/${id}`, { method: "DELETE", headers: authHeader() });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error?.message ?? "No se pudo eliminar");
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error");
@@ -107,12 +119,13 @@ export function ClientsPage() {
               <th className="px-4 py-3">Nombre</th>
               <th className="py-3 pr-3">RFC</th>
               <th className="py-3 pr-3">Régimen</th>
+              <th className="py-3 pr-3">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {data.length === 0 ? (
               <tr>
-                <td className="px-4 py-4 text-slate-500" colSpan={3}>
+                <td className="px-4 py-4 text-slate-500" colSpan={4}>
                   Sin datos.
                 </td>
               </tr>
@@ -126,6 +139,14 @@ export function ClientsPage() {
                     {c.rfc}
                   </td>
                   <td className="py-3 pr-3 text-slate-700">{c.regimen}</td>
+                  <td className="py-3 pr-3">
+                    <button
+                      className="rounded-lg border px-2 py-1 text-xs"
+                      onClick={() => remove(c.id)}
+                    >
+                      Eliminar
+                    </button>
+                  </td>
                 </tr>
               ))
             )}

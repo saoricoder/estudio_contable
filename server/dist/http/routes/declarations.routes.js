@@ -48,3 +48,13 @@ exports.declarationsRouter.patch("/declarations/:id", (0, validateBody_1.validat
         next(e);
     }
 });
+exports.declarationsRouter.delete("/declarations/:id", async (req, res, next) => {
+    try {
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const data = await declarationsService.remove(id);
+        res.json({ data });
+    }
+    catch (e) {
+        next(e);
+    }
+});

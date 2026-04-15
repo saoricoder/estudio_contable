@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiGet, apiPost } from "../lib/api";
+import { apiGet, apiPost, authHeader } from "../lib/api";
 
 export function DeclarationsPage() {
   const [items, setItems] = useState<any[]>([]);
@@ -42,6 +42,37 @@ export function DeclarationsPage() {
         ...form,
         notes: form.notes || undefined,
       });
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error");
+    }
+  }
+
+  async function setStatus(id: string, status: string) {
+    setError(null);
+    try {
+      const res = await fetch(`/api/declarations/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", ...authHeader() },
+        body: JSON.stringify({ status }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error?.message ?? "No se pudo actualizar");
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error");
+    }
+  }
+
+  async function remove(id: string) {
+    setError(null);
+    try {
+      const res = await fetch(`/api/declarations/${id}`, {
+        method: "DELETE",
+        headers: authHeader(),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error?.message ?? "No se pudo eliminar");
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error");
@@ -171,12 +202,13 @@ export function DeclarationsPage() {
               <th className="py-3 pr-3">Periodo</th>
               <th className="py-3 pr-3">Vence</th>
               <th className="py-3 pr-3">Estatus</th>
+              <th className="py-3 pr-3">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {items.length === 0 ? (
               <tr>
-                <td className="px-4 py-4 text-slate-500" colSpan={5}>
+                <td className="px-4 py-4 text-slate-500" colSpan={6}>
                   Sin datos.
                 </td>
               </tr>
@@ -193,7 +225,27 @@ export function DeclarationsPage() {
                   <td className="py-3 pr-3 font-mono text-xs text-slate-700">
                     {String(d.dueDate)}
                   </td>
-                  <td className="py-3 pr-3 text-slate-700">{d.status}</td>
+                  <td className="py-3 pr-3">
+                    <select
+                      className="h-8 rounded-lg border bg-white px-2 text-xs"
+                      value={d.status}
+                      onChange={(e) => setStatus(d.id, e.target.value)}
+                    >
+                      <option value="PENDING">PENDING</option>
+                      <option value="IN_PROGRESS">IN_PROGRESS</option>
+                      <option value="SUBMITTED">SUBMITTED</option>
+                      <option value="PAID">PAID</option>
+                      <option value="OVERDUE">OVERDUE</option>
+                    </select>
+                  </td>
+                  <td className="py-3 pr-3">
+                    <button
+                      className="rounded-lg border px-2 py-1 text-xs"
+                      onClick={() => remove(d.id)}
+                    >
+                      Eliminar
+                    </button>
+                  </td>
                 </tr>
               ))
             )}

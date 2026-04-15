@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiGet, apiPost } from "../lib/api";
+import { apiGet, apiPost, authHeader } from "../lib/api";
 
 export function InvoicesPage() {
   const [items, setItems] = useState<any[]>([]);
@@ -43,6 +43,37 @@ export function InvoicesPage() {
         ...form,
         amount: Number(form.amount),
       });
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error");
+    }
+  }
+
+  async function toggleActive(inv: any) {
+    setError(null);
+    try {
+      const res = await fetch(`/api/invoices/recurring/${inv.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", ...authHeader() },
+        body: JSON.stringify({ active: !inv.active }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error?.message ?? "No se pudo actualizar");
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error");
+    }
+  }
+
+  async function remove(id: string) {
+    setError(null);
+    try {
+      const res = await fetch(`/api/invoices/recurring/${id}`, {
+        method: "DELETE",
+        headers: authHeader(),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error?.message ?? "No se pudo eliminar");
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error");
@@ -165,12 +196,13 @@ export function InvoicesPage() {
               <th className="py-3 pr-3">Frecuencia</th>
               <th className="py-3 pr-3">Próxima</th>
               <th className="py-3 pr-3">Activa</th>
+              <th className="py-3 pr-3">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {items.length === 0 ? (
               <tr>
-                <td className="px-4 py-4 text-slate-500" colSpan={6}>
+                <td className="px-4 py-4 text-slate-500" colSpan={7}>
                   Sin datos.
                 </td>
               </tr>
@@ -190,6 +222,22 @@ export function InvoicesPage() {
                   </td>
                   <td className="py-3 pr-3 text-slate-700">
                     {inv.active ? "Sí" : "No"}
+                  </td>
+                  <td className="py-3 pr-3">
+                    <div className="flex gap-2">
+                      <button
+                        className="rounded-lg border px-2 py-1 text-xs"
+                        onClick={() => toggleActive(inv)}
+                      >
+                        {inv.active ? "Desactivar" : "Activar"}
+                      </button>
+                      <button
+                        className="rounded-lg border px-2 py-1 text-xs"
+                        onClick={() => remove(inv.id)}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

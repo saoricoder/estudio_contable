@@ -82,5 +82,18 @@ class DeclarationsService {
             upcoming,
         };
     }
+    async remove(id) {
+        const existing = await prisma_1.prisma.declaration.findUnique({
+            where: { id },
+            select: { id: true },
+        });
+        if (!existing) {
+            const err = new Error("Declaration not found");
+            err.status = 404;
+            throw err;
+        }
+        await prisma_1.prisma.declaration.delete({ where: { id } });
+        return { ok: true };
+    }
 }
 exports.DeclarationsService = DeclarationsService;

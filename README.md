@@ -116,6 +116,7 @@ Para endpoints protegidos, enviar header:
   - body (ejemplo):
     - `{ "clientId": "<uuid>", "type": "PROVISIONAL", "status": "PENDING", "period": "2026-03", "dueDate": "2026-04-17T00:00:00.000Z", "notes": "Provisional marzo" }`
 - `PATCH /api/declarations/:id`
+- `DELETE /api/declarations/:id`
 
 ### Alertas (protegido)
 
