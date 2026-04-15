@@ -18,6 +18,15 @@ export const statementLineCreateSchema = z.object({
   type: entryType,
 });
 
+export const statementImportSchema = z.object({
+  csv: z.string().min(1),
+});
+
+export const matchSuggestSchema = z.object({
+  statementLineId: z.string().uuid(),
+  maxDaysDiff: z.number().int().min(0).max(10).default(2),
+});
+
 export const matchCreateSchema = z.object({
   movementId: z.string().uuid(),
   statementLineId: z.string().uuid(),

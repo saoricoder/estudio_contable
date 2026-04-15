@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.movementCategoryUpdateSchema = exports.matchCreateSchema = exports.statementLineCreateSchema = exports.movementCreateSchema = void 0;
+exports.movementCategoryUpdateSchema = exports.matchCreateSchema = exports.matchSuggestSchema = exports.statementImportSchema = exports.statementLineCreateSchema = exports.movementCreateSchema = void 0;
 const zod_1 = require("zod");
 const entryType = zod_1.z.enum(["CREDIT", "DEBIT"]);
 exports.movementCreateSchema = zod_1.z.object({
@@ -16,6 +16,13 @@ exports.statementLineCreateSchema = zod_1.z.object({
     reference: zod_1.z.string().max(80).optional(),
     amount: zod_1.z.number().finite(),
     type: entryType,
+});
+exports.statementImportSchema = zod_1.z.object({
+    csv: zod_1.z.string().min(1),
+});
+exports.matchSuggestSchema = zod_1.z.object({
+    statementLineId: zod_1.z.string().uuid(),
+    maxDaysDiff: zod_1.z.number().int().min(0).max(10).default(2),
 });
 exports.matchCreateSchema = zod_1.z.object({
     movementId: zod_1.z.string().uuid(),

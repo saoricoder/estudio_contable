@@ -6,6 +6,7 @@ const authJwt_1 = require("../middlewares/authJwt");
 const validateBody_1 = require("../middlewares/validateBody");
 const banking_schemas_1 = require("../../domain/banking/banking.schemas");
 const banking_service_1 = require("../../domain/banking/banking.service");
+const banking_import_1 = require("../../domain/banking/banking.import");
 exports.bankingRouter = (0, express_1.Router)();
 const bankingService = new banking_service_1.BankingService();
 exports.bankingRouter.use(authJwt_1.authJwt);
@@ -53,6 +54,25 @@ exports.bankingRouter.post("/banking/statements", (0, validateBody_1.validateBod
     try {
         const data = await bankingService.createStatementLine(req.body);
         res.status(201).json({ data });
+    }
+    catch (e) {
+        next(e);
+    }
+});
+exports.bankingRouter.post("/banking/statements/import", (0, validateBody_1.validateBody)(banking_schemas_1.statementImportSchema), async (req, res, next) => {
+    try {
+        const rows = (0, banking_import_1.parseStatementCsv)({ csv: req.body.csv });
+        const data = await bankingService.importStatementLines(rows);
+        res.status(201).json({ data });
+    }
+    catch (e) {
+        next(e);
+    }
+});
+exports.bankingRouter.post("/banking/match/suggest", (0, validateBody_1.validateBody)(banking_schemas_1.matchSuggestSchema), async (req, res, next) => {
+    try {
+        const data = await bankingService.suggestMatches(req.body);
+        res.json({ data });
     }
     catch (e) {
         next(e);

@@ -6,8 +6,11 @@ import {
   movementCreateSchema,
   movementCategoryUpdateSchema,
   statementLineCreateSchema,
+  statementImportSchema,
+  matchSuggestSchema,
 } from "../../domain/banking/banking.schemas";
 import { BankingService } from "../../domain/banking/banking.service";
+import { parseStatementCsv } from "../../domain/banking/banking.import";
 
 export const bankingRouter = Router();
 const bankingService = new BankingService();
@@ -69,6 +72,33 @@ bankingRouter.post(
     try {
       const data = await bankingService.createStatementLine(req.body);
       res.status(201).json({ data });
+    } catch (e) {
+      next(e);
+    }
+  },
+);
+
+bankingRouter.post(
+  "/banking/statements/import",
+  validateBody(statementImportSchema),
+  async (req, res, next) => {
+    try {
+      const rows = parseStatementCsv({ csv: req.body.csv });
+      const data = await bankingService.importStatementLines(rows);
+      res.status(201).json({ data });
+    } catch (e) {
+      next(e);
+    }
+  },
+);
+
+bankingRouter.post(
+  "/banking/match/suggest",
+  validateBody(matchSuggestSchema),
+  async (req, res, next) => {
+    try {
+      const data = await bankingService.suggestMatches(req.body);
+      res.json({ data });
     } catch (e) {
       next(e);
     }

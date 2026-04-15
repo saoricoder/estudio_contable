@@ -7,6 +7,10 @@ export function BankingPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedMovementId, setSelectedMovementId] = useState<string | null>(null);
   const [selectedStatementId, setSelectedStatementId] = useState<string | null>(null);
+  const [selectedStatementForSuggest, setSelectedStatementForSuggest] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<any[] | null>(null);
+  const [csvText, setCsvText] = useState("");
+  const [importResult, setImportResult] = useState<string | null>(null);
 
   const [newMovement, setNewMovement] = useState({
     date: new Date().toISOString(),
@@ -110,6 +114,35 @@ export function BankingPage() {
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error?.message ?? "No se pudo actualizar categoría");
       await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error");
+    }
+  }
+
+  async function importCsv() {
+    setError(null);
+    setImportResult(null);
+    try {
+      const res = await apiPost<{ data: { inserted: number } }>(`/api/banking/statements/import`, {
+        csv: csvText,
+      });
+      setImportResult(`Importadas: ${res.data.inserted}`);
+      setCsvText("");
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error");
+    }
+  }
+
+  async function suggest() {
+    if (!selectedStatementForSuggest) return;
+    setError(null);
+    try {
+      const res = await apiPost<{ data: { suggestions: any[] } }>(`/api/banking/match/suggest`, {
+        statementLineId: selectedStatementForSuggest,
+        maxDaysDiff: 2,
+      });
+      setSuggestions(res.data.suggestions);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error");
     }
@@ -245,6 +278,31 @@ export function BankingPage() {
             </div>
           </div>
         </div>
+
+        <div className="mt-4 rounded-2xl border bg-slate-50 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-sm font-semibold text-slate-900">Importar estado de cuenta (CSV)</div>
+            <button
+              className="h-9 rounded-xl bg-ink-950 px-3 text-sm font-medium text-white disabled:opacity-60"
+              onClick={importCsv}
+              disabled={!csvText.trim()}
+            >
+              Importar
+            </button>
+          </div>
+          <div className="mt-2 text-xs text-slate-600">
+            Columnas sugeridas: <code>fecha, descripcion, referencia, monto, tipo</code> (tipo: CREDIT/DEBIT o Cargo/Abono).
+          </div>
+          <textarea
+            className="mt-3 h-32 w-full rounded-xl border bg-white p-3 font-mono text-xs outline-none"
+            value={csvText}
+            onChange={(e) => setCsvText(e.target.value)}
+            placeholder={`fecha,descripcion,referencia,monto,tipo\n01/04/2026,SPEI a proveedor,SPEI999,-1500.50,DEBIT`}
+          />
+          {importResult ? (
+            <div className="mt-2 text-sm text-emerald-700">{importResult}</div>
+          ) : null}
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -335,6 +393,7 @@ export function BankingPage() {
             <thead className="text-xs text-slate-500">
               <tr className="border-b">
                 <th className="px-4 py-3">Sel</th>
+                <th className="py-3 pr-3">Sug.</th>
                 <th className="py-3 pr-3">Fecha</th>
                 <th className="py-3 pr-3">Descripción</th>
                 <th className="py-3 pr-3">Monto</th>
@@ -344,7 +403,7 @@ export function BankingPage() {
             <tbody>
               {statements.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-4 text-slate-500" colSpan={5}>
+                  <td className="px-4 py-4 text-slate-500" colSpan={6}>
                     Sin datos.
                   </td>
                 </tr>
@@ -359,6 +418,19 @@ export function BankingPage() {
                         onChange={() => setSelectedStatementId(s.id)}
                         disabled={Boolean(s.match)}
                       />
+                    </td>
+                    <td className="py-3 pr-3">
+                      <button
+                        className="rounded-lg border px-2 py-1 text-xs disabled:opacity-60"
+                        onClick={() => {
+                          setSelectedStatementForSuggest(s.id);
+                          void Promise.resolve().then(suggest);
+                        }}
+                        disabled={Boolean(s.match)}
+                        title="Sugerir match"
+                      >
+                        Sugerir
+                      </button>
                     </td>
                     <td className="py-3 pr-3 font-mono text-xs text-slate-700">
                       {String(s.date)}
@@ -381,6 +453,68 @@ export function BankingPage() {
           </table>
         </div>
       </div>
+
+      {suggestions ? (
+        <div className="rounded-2xl border bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="text-sm font-semibold text-slate-900">Sugerencias de match</div>
+              <div className="text-xs text-slate-600">Top 10 por monto/fecha (solo movimientos sin conciliar).</div>
+            </div>
+            <button className="h-9 rounded-xl border px-3 text-sm" onClick={() => setSuggestions(null)}>
+              Cerrar
+            </button>
+          </div>
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[820px] text-left text-sm">
+              <thead className="text-xs text-slate-500">
+                <tr className="border-b">
+                  <th className="px-4 py-3">ID</th>
+                  <th className="py-3 pr-3">Fecha</th>
+                  <th className="py-3 pr-3">Descripción</th>
+                  <th className="py-3 pr-3">Monto</th>
+                  <th className="py-3 pr-3">Tipo</th>
+                  <th className="py-3 pr-3">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {suggestions.length === 0 ? (
+                  <tr>
+                    <td className="px-4 py-4 text-slate-500" colSpan={6}>
+                      Sin sugerencias.
+                    </td>
+                  </tr>
+                ) : (
+                  suggestions.map((m) => (
+                    <tr key={m.id} className="border-b last:border-b-0">
+                      <td className="px-4 py-3 font-mono text-xs text-slate-700">{m.id}</td>
+                      <td className="py-3 pr-3 font-mono text-xs text-slate-700">{String(m.date)}</td>
+                      <td className="py-3 pr-3 text-slate-700">{m.description}</td>
+                      <td className="py-3 pr-3 font-mono text-xs text-slate-700">{String(m.amount)}</td>
+                      <td className="py-3 pr-3 text-slate-700">{m.type}</td>
+                      <td className="py-3 pr-3">
+                        <button
+                          className="rounded-lg border px-2 py-1 text-xs disabled:opacity-60"
+                          onClick={() => {
+                            if (!selectedStatementForSuggest) return;
+                            setSelectedMovementId(m.id);
+                            setSelectedStatementId(selectedStatementForSuggest);
+                            void matchSelected();
+                            setSuggestions(null);
+                          }}
+                          disabled={!selectedStatementForSuggest}
+                        >
+                          Conciliar
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

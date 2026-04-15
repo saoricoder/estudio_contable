@@ -1,4 +1,5 @@
 import { prisma } from "../../config/prisma";
+import type { ImportedStatementRow } from "./banking.import";
 
 export class BankingService {
   async listMovements() {
@@ -51,6 +52,72 @@ export class BankingService {
         source: "BANK",
       },
     });
+  }
+
+  async importStatementLines(rows: ImportedStatementRow[]) {
+    // MVP: importación simple sin deduplicación sofisticada.
+    const created = await prisma.bankStatementLine.createMany({
+      data: rows.map((r) => ({
+        date: new Date(r.date),
+        description: r.description,
+        reference: r.reference,
+        amount: r.amount as any,
+        type: r.type,
+        source: "BANK",
+      })),
+      skipDuplicates: false,
+    });
+    return { inserted: created.count };
+  }
+
+  async suggestMatches(params: { statementLineId: string; maxDaysDiff: number }) {
+    const statement = await prisma.bankStatementLine.findUnique({
+      where: { id: params.statementLineId },
+      include: { match: true },
+    });
+    if (!statement) {
+      const err = new Error("Statement line not found");
+      (err as any).status = 404;
+      throw err;
+    }
+    if (statement.match) {
+      const err = new Error("Statement line already matched");
+      (err as any).status = 409;
+      throw err;
+    }
+
+    const targetAmount = Number(statement.amount.toString());
+    const start = new Date(statement.date);
+    const end = new Date(statement.date);
+    start.setUTCDate(start.getUTCDate() - params.maxDaysDiff);
+    end.setUTCDate(end.getUTCDate() + params.maxDaysDiff);
+
+    const candidates = await prisma.bankMovement.findMany({
+      where: {
+        match: { is: null },
+        date: { gte: start, lte: end },
+      },
+      select: { id: true, date: true, description: true, amount: true, type: true, category: true },
+      take: 50,
+    });
+
+    const ranked = candidates
+      .map((m) => {
+        const amt = Number(m.amount.toString());
+        const diff = Math.abs(Math.abs(amt) - Math.abs(targetAmount));
+        const dayDiff = Math.abs(
+          Math.floor((new Date(m.date).getTime() - new Date(statement.date).getTime()) / (24 * 60 * 60 * 1000)),
+        );
+        const score = diff * 10 + dayDiff; // prioriza monto
+        return { ...m, score };
+      })
+      .sort((a, b) => a.score - b.score)
+      .slice(0, 10);
+
+    return {
+      statementLine: statement,
+      suggestions: ranked,
+    };
   }
 
   async match(params: { movementId: string; statementLineId: string }) {

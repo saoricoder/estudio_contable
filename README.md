@@ -103,6 +103,12 @@ Para endpoints protegidos, enviar header:
 - `GET /api/banking/statements` (líneas de estado de cuenta)
 - `POST /api/banking/statements`
   - body: `{ "date": "2026-04-01T00:00:00.000Z", "description": "SPEI a proveedor", "reference?": "SPEI999", "amount": -1500.5, "type": "DEBIT" }`
+- `POST /api/banking/statements/import`
+  - body: `{ "csv": "fecha,descripcion,monto,tipo\\n01/04/2026,SPEI,-1500.5,DEBIT" }`
+  - columnas aceptadas (flexibles): `fecha|date`, `descripcion|description`, `referencia|reference`, `monto|amount`, `tipo|type`
+- `POST /api/banking/match/suggest`
+  - body: `{ "statementLineId": "<uuid>", "maxDaysDiff": 2 }`
+  - devuelve top sugerencias por cercanía de monto/fecha (movimientos sin conciliar)
 - `POST /api/banking/match`
   - body: `{ "movementId": "<uuid>", "statementLineId": "<uuid>" }`
 - `DELETE /api/banking/match/movement/:movementId`
