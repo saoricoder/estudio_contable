@@ -14,7 +14,7 @@ exports.reportsRouter.get("/reports/financial-health.pdf", async (req, res, next
         if (!month) {
             return res.status(400).json({ error: { message: "Missing query param: month (YYYY-MM)" } });
         }
-        const summary = await financialHealthService.summarize({ month });
+        const summary = await financialHealthService.details({ month });
         const doc = (0, financialHealthPdf_1.buildFinancialHealthPdf)({
             clientName: "Contadores Unidos MX",
             summary,

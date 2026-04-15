@@ -51,6 +51,40 @@ class FinancialHealthService {
                 .slice(0, 8),
         };
     }
+    async details(params) {
+        const summary = await this.summarize(params);
+        const trendMonths = prevMonthsInclusive(params.month, 3);
+        const trend3m = await Promise.all(trendMonths.map(async (m) => {
+            const s = await this.summarize({ month: m });
+            return {
+                month: m,
+                income: s.income,
+                expenses: s.expenses,
+                net: s.net,
+                matchedCount: s.matchedCount,
+            };
+        }));
+        const { start, end } = monthRange(params.month);
+        const movements = await prisma_1.prisma.bankMovement.findMany({
+            where: { date: { gte: start, lt: end }, match: { isNot: null } },
+            select: { id: true, date: true, description: true, type: true, amount: true, category: true },
+        });
+        const topMovements = movements
+            .map((m) => {
+            const amountAbs = Math.abs(toNumber(m.amount));
+            return {
+                id: m.id,
+                date: m.date.toISOString(),
+                description: m.description,
+                type: m.type,
+                amountAbs: round2(amountAbs),
+                category: (m.category ?? "Sin categoría").trim() || "Sin categoría",
+            };
+        })
+            .sort((a, b) => b.amountAbs - a.amountAbs)
+            .slice(0, 10);
+        return { ...summary, trend3m, topMovements };
+    }
 }
 exports.FinancialHealthService = FinancialHealthService;
 function monthRange(month) {
@@ -63,6 +97,19 @@ function monthRange(month) {
     const start = new Date(Date.UTC(y, m - 1, 1, 0, 0, 0));
     const end = new Date(Date.UTC(y, m, 1, 0, 0, 0));
     return { start, end };
+}
+function prevMonthsInclusive(month, count) {
+    // returns [older..month]
+    const [y, m] = month.split("-").map(Number);
+    const res = [];
+    for (let i = count - 1; i >= 0; i--) {
+        const d = new Date(Date.UTC(y, m - 1, 1, 0, 0, 0));
+        d.setUTCMonth(d.getUTCMonth() - i);
+        const yy = d.getUTCFullYear();
+        const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+        res.push(`${yy}-${mm}`);
+    }
+    return res;
 }
 function toNumber(v) {
     // Prisma Decimal serializa a string en JSON; runtime suele ser Decimal-like con toString()

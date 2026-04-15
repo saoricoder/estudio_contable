@@ -127,6 +127,7 @@ Para endpoints protegidos, enviar header:
   - genera un PDF de “Salud Financiera” comparando ingresos vs gastos del mes.
   - base MVP: movimientos bancarios **conciliados** del mes.
   - incluye **desglose por categoría (Top 8)** usando `BankMovement.category`.
+  - incluye **tendencia 3 meses** y **Top 10 movimientos** conciliados del mes.
 
 ## Despliegue en Vercel
 
