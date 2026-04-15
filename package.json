@@ -8,7 +8,9 @@
   "scripts": {
     "dev": "concurrently -n server,client -c blue,magenta \"npm run dev -w server\" \"npm run dev -w client\"",
     "build": "npm run build -w server && npm run build -w client",
-    "lint": "npm run lint -w server && npm run lint -w client"
+    "lint": "npm run lint -w server && npm run lint -w client",
+    "seed": "npm run seed -w server",
+    "prisma:seed": "npm run prisma:seed -w server"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
