@@ -4,7 +4,11 @@ import { setToken } from "./lib/api";
 import { AppShell } from "./layout/AppShell";
 import { LoginPage } from "./pages/LoginPage";
 import { ClientsPage } from "./pages/ClientsPage";
-import { PlaceholderPage } from "./pages/PlaceholderPage";
+import { PayrollPage } from "./pages/PayrollPage";
+import { InvoicesPage } from "./pages/InvoicesPage";
+import { BankingPage } from "./pages/BankingPage";
+import { DeclarationsPage } from "./pages/DeclarationsPage";
+import { AlertsPage } from "./pages/AlertsPage";
 
 export default function Router() {
   const [jwt, setJwt] = useState<string | null>(() => localStorage.getItem("jwt"));
@@ -24,26 +28,11 @@ export default function Router() {
       <Route element={<AppShell onLogout={() => setJwt(null)} />}>
         <Route path="/" element={<Navigate to="/clients" replace />} />
         <Route path="/clients" element={<ClientsPage />} />
-        <Route
-          path="/payroll"
-          element={<PlaceholderPage title="Nómina" note="UI completa pendiente; API lista." />}
-        />
-        <Route
-          path="/invoices"
-          element={<PlaceholderPage title="Facturación" note="UI completa pendiente; API lista." />}
-        />
-        <Route
-          path="/banking"
-          element={<PlaceholderPage title="Conciliación" note="UI completa pendiente; API lista." />}
-        />
-        <Route
-          path="/declarations"
-          element={<PlaceholderPage title="Declaraciones" note="UI completa pendiente; API lista." />}
-        />
-        <Route
-          path="/alerts"
-          element={<PlaceholderPage title="Alertas" note="UI completa pendiente; API lista." />}
-        />
+        <Route path="/payroll" element={<PayrollPage />} />
+        <Route path="/invoices" element={<InvoicesPage />} />
+        <Route path="/banking" element={<BankingPage />} />
+        <Route path="/declarations" element={<DeclarationsPage />} />
+        <Route path="/alerts" element={<AlertsPage />} />
         <Route path="*" element={<Navigate to="/clients" replace />} />
       </Route>
     </Routes>
