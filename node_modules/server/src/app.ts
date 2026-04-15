@@ -12,6 +12,7 @@ import { recurringInvoicesRouter } from "./http/routes/recurringInvoices.routes"
 import { bankingRouter } from "./http/routes/banking.routes";
 import { declarationsRouter } from "./http/routes/declarations.routes";
 import { alertsRouter } from "./http/routes/alerts.routes";
+import { reportsRouter } from "./http/routes/reports.routes";
 
 export const app = express();
 
@@ -37,6 +38,7 @@ app.use("/api", recurringInvoicesRouter);
 app.use("/api", bankingRouter);
 app.use("/api", declarationsRouter);
 app.use("/api", alertsRouter);
+app.use("/api", reportsRouter);
 
 app.use(errorHandler);
 

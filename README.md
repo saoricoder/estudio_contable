@@ -119,6 +119,12 @@ Para endpoints protegidos, enviar header:
   - query opcional: `daysAhead` (default 30)
   - semáforo: `GREEN` (>5 días), `YELLOW` (<=5 días), `RED` (vencido/OVERDUE)
 
+### Reportes (PDF) (protegido)
+
+- `GET /api/reports/financial-health.pdf?month=YYYY-MM`
+  - genera un PDF de “Salud Financiera” comparando ingresos vs gastos del mes.
+  - base MVP: movimientos bancarios **conciliados** del mes.
+
 ## Despliegue en Vercel
 
 El repo incluye `vercel.json`:

@@ -2,6 +2,7 @@ import {
   Bell,
   BookOpenCheck,
   Building2,
+  Download,
   FileText,
   Flag,
   ListChecks,
@@ -13,7 +14,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { ComponentType } from "react";
-import { apiGet, apiPost, setToken } from "./lib/api";
+import { apiGet, apiPost, authHeader, setToken } from "./lib/api";
 
 function App() {
   const [jwt, setJwt] = useState<string | null>(null);
@@ -44,6 +45,11 @@ function App() {
   const [declarations, setDeclarations] = useState<any[]>([]);
   const [alerts, setAlerts] = useState<any[]>([]);
   const [declError, setDeclError] = useState<string | null>(null);
+  const [reportMonth, setReportMonth] = useState(() => {
+    const d = new Date();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    return `${d.getFullYear()}-${mm}`;
+  });
 
   useEffect(() => {
     setToken(jwt);
@@ -155,7 +161,7 @@ function App() {
     try {
       const res = await fetch(`/api/banking/match/movement/${movementId}`, {
         method: "DELETE",
-        headers: jwt ? { Authorization: `Bearer ${jwt}` } : undefined,
+        headers: authHeader(),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error?.message ?? "Request failed");
@@ -174,6 +180,27 @@ function App() {
       ]);
       setDeclarations(dRes.data);
       setAlerts(aRes.data);
+    } catch (e) {
+      setDeclError(e instanceof Error ? e.message : "Error");
+    }
+  }
+
+  async function downloadFinancialHealthPdf() {
+    setDeclError(null);
+    try {
+      const res = await fetch(`/api/reports/financial-health.pdf?month=${encodeURIComponent(reportMonth)}`, {
+        method: "GET",
+        headers: authHeader(),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json?.error?.message ?? "No se pudo generar el PDF");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank", "noopener,noreferrer");
+      // liberar luego
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
     } catch (e) {
       setDeclError(e instanceof Error ? e.message : "Error");
     }
@@ -571,16 +598,44 @@ function App() {
               <ListChecks className="size-4" aria-hidden={true} />
               Declaraciones & alertas
             </div>
-            <button
-              className="h-9 rounded-xl border px-3 text-sm font-medium text-slate-900 disabled:opacity-60"
-              onClick={loadDeclarationsAndAlerts}
-              disabled={!isAuthed}
-            >
-              Cargar
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                className="h-9 rounded-xl border px-3 text-sm font-medium text-slate-900 disabled:opacity-60"
+                onClick={loadDeclarationsAndAlerts}
+                disabled={!isAuthed}
+              >
+                Cargar
+              </button>
+              <button
+                className="h-9 rounded-xl bg-ink-950 px-3 text-sm font-medium text-white disabled:opacity-60"
+                onClick={downloadFinancialHealthPdf}
+                disabled={!isAuthed}
+                title="Generar PDF (Salud financiera)"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <Download className="size-4" aria-hidden={true} />
+                  PDF
+                </span>
+              </button>
+            </div>
           </div>
           <div className="mt-2 text-sm text-slate-600">
             Dashboard mínimo: declaraciones registradas y semáforo de vencimientos (30 días).
+          </div>
+
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-sm text-slate-700">
+              Reporte de salud financiera (ingresos vs gastos del mes, basado en conciliación).
+            </div>
+            <label className="flex items-center gap-2 text-sm">
+              <span className="text-xs font-medium text-slate-600">Mes</span>
+              <input
+                className="h-9 w-[140px] rounded-xl border px-3 text-sm outline-none focus:border-slate-400"
+                value={reportMonth}
+                onChange={(e) => setReportMonth(e.target.value)}
+                placeholder="YYYY-MM"
+              />
+            </label>
           </div>
           {declError ? (
             <div className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-800">
