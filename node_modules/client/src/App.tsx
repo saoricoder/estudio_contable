@@ -5,6 +5,7 @@ import {
   FileText,
   Landmark,
   Lock,
+  RefreshCcw,
   Receipt,
   ShieldCheck,
 } from "lucide-react";
@@ -28,6 +29,9 @@ function App() {
   const [isrMonthlyEstimate, setIsrMonthlyEstimate] = useState(1200);
   const [payrollResult, setPayrollResult] = useState<any>(null);
   const [payrollError, setPayrollError] = useState<string | null>(null);
+
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [invoicesError, setInvoicesError] = useState<string | null>(null);
 
   useEffect(() => {
     setToken(jwt);
@@ -91,6 +95,16 @@ function App() {
       setPayrollResult(res.data);
     } catch (e) {
       setPayrollError(e instanceof Error ? e.message : "Error");
+    }
+  }
+
+  async function loadRecurringInvoices() {
+    setInvoicesError(null);
+    try {
+      const res = await apiGet<{ data: any[] }>(`/api/invoices/recurring`);
+      setInvoices(res.data);
+    } catch (e) {
+      setInvoicesError(e instanceof Error ? e.message : "Error");
     }
   }
 
@@ -330,6 +344,79 @@ function App() {
               Calcula para ver desglose (IMSS aproximado + subsidio MVP).
             </div>
           )}
+        </section>
+
+        <section className="mt-6 rounded-2xl border bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 font-semibold text-slate-900">
+              <RefreshCcw className="size-4" aria-hidden={true} />
+              Facturas recurrentes (API)
+            </div>
+            <button
+              className="h-9 rounded-xl border px-3 text-sm font-medium text-slate-900 disabled:opacity-60"
+              onClick={loadRecurringInvoices}
+              disabled={!isAuthed}
+              title={!isAuthed ? "Primero inicia sesión" : "Cargar"}
+            >
+              Cargar
+            </button>
+          </div>
+          {!isAuthed ? (
+            <div className="mt-3 text-sm text-slate-600">
+              Inicia sesión para consultar{" "}
+              <code className="rounded bg-slate-100 px-2 py-1">
+                GET /api/invoices/recurring
+              </code>
+              .
+            </div>
+          ) : null}
+          {invoicesError ? (
+            <div className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-800">
+              {invoicesError}
+            </div>
+          ) : null}
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[720px] text-left text-sm">
+              <thead className="text-xs text-slate-500">
+                <tr className="border-b">
+                  <th className="py-2 pr-3">Cliente</th>
+                  <th className="py-2 pr-3">Concepto</th>
+                  <th className="py-2 pr-3">Monto</th>
+                  <th className="py-2 pr-3">Frecuencia</th>
+                  <th className="py-2 pr-3">Próxima</th>
+                  <th className="py-2 pr-3">Activa</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoices.length === 0 ? (
+                  <tr>
+                    <td className="py-3 text-slate-500" colSpan={6}>
+                      Sin datos.
+                    </td>
+                  </tr>
+                ) : (
+                  invoices.map((inv) => (
+                    <tr key={inv.id} className="border-b last:border-b-0">
+                      <td className="py-2 pr-3 font-medium text-slate-900">
+                        {inv.client?.name ?? inv.clientId}
+                      </td>
+                      <td className="py-2 pr-3 text-slate-700">{inv.concept}</td>
+                      <td className="py-2 pr-3 font-mono text-xs text-slate-700">
+                        {inv.currency} {String(inv.amount)}
+                      </td>
+                      <td className="py-2 pr-3 text-slate-700">{inv.frequency}</td>
+                      <td className="py-2 pr-3 font-mono text-xs text-slate-700">
+                        {String(inv.nextRunDate)}
+                      </td>
+                      <td className="py-2 pr-3 text-slate-700">
+                        {inv.active ? "Sí" : "No"}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </section>
       </main>
     </div>

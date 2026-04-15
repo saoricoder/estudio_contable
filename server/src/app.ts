@@ -8,6 +8,7 @@ import { authRouter } from "./http/routes/auth.routes";
 import { clientsRouter } from "./http/routes/clients.routes";
 import { healthRouter } from "./http/routes/health.routes";
 import { payrollRouter } from "./http/routes/payroll.routes";
+import { recurringInvoicesRouter } from "./http/routes/recurringInvoices.routes";
 
 export const app = express();
 
@@ -29,6 +30,7 @@ app.use("/api", authRouter);
 app.use("/api", healthRouter);
 app.use("/api", clientsRouter);
 app.use("/api", payrollRouter);
+app.use("/api", recurringInvoicesRouter);
 
 app.use(errorHandler);
 

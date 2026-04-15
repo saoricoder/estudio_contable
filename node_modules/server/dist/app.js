@@ -14,6 +14,7 @@ const auth_routes_1 = require("./http/routes/auth.routes");
 const clients_routes_1 = require("./http/routes/clients.routes");
 const health_routes_1 = require("./http/routes/health.routes");
 const payroll_routes_1 = require("./http/routes/payroll.routes");
+const recurringInvoices_routes_1 = require("./http/routes/recurringInvoices.routes");
 exports.app = (0, express_1.default)();
 exports.app.use((0, helmet_1.default)());
 exports.app.use((0, cors_1.default)({
@@ -29,4 +30,5 @@ exports.app.use("/api", auth_routes_1.authRouter);
 exports.app.use("/api", health_routes_1.healthRouter);
 exports.app.use("/api", clients_routes_1.clientsRouter);
 exports.app.use("/api", payroll_routes_1.payrollRouter);
+exports.app.use("/api", recurringInvoices_routes_1.recurringInvoicesRouter);
 exports.app.use(errorHandler_1.errorHandler);

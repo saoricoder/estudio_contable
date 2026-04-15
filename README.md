@@ -82,6 +82,15 @@ Para endpoints protegidos, enviar header:
     - `{ "salaryType": "MONTHLY", "grossSalary": 18000, "daysInPeriod": 15, "integrationFactor": 1.0452, "umaDaily": 108.57, "isrMonthlyEstimate": 1200 }`
   - response: `{ data: { gross, imss, subsidy, netEstimate, disclaimers } }`
 
+### Facturación (recurrente) (protegido)
+
+- `GET /api/invoices/recurring`
+- `POST /api/invoices/recurring`
+  - body (ejemplo):
+    - `{ "clientId": "<uuid>", "concept": "Honorarios contables", "amount": 2500, "currency": "MXN", "frequency": "MONTHLY", "startDate": "2026-01-01T00:00:00.000Z", "nextRunDate": "2026-02-01T00:00:00.000Z", "active": true }`
+- `PATCH /api/invoices/recurring/:id`
+- `DELETE /api/invoices/recurring/:id`
+
 ## Despliegue en Vercel
 
 El repo incluye `vercel.json`:
