@@ -1,3 +1,9 @@
+/*
+ * Desarrollado por: Saori Coder
+ * Contacto: https://instagram.com/saoricoder
+ * Proyecto: Estudio Contable Eficiente - Contadores Unidos MX
+ */
+
 import "dotenv/config";
 
 const required = ["DATABASE_URL", "JWT_SECRET"] as const;

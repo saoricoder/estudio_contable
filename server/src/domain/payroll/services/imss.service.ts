@@ -22,6 +22,12 @@ export type ImssResult = {
 // - Invalidez y Vida: 0.625% sobre SBC
 // - Cesantía y Vejez: 1.125% sobre SBC
 // Topes: SBC máximo 25 UMA (LSS).
+/*
+ * Desarrollado por: Saori Coder
+ * Contacto: https://instagram.com/saoricoder
+ * Proyecto: Estudio Contable Eficiente - Contadores Unidos MX
+ */
+
 export class ImssService {
   calculateEmployeeContrib(params: {
     sbcDaily: number;

@@ -1,3 +1,9 @@
+/*
+ * Desarrollado por: Saori Coder
+ * Contacto: https://instagram.com/saoricoder
+ * Proyecto: Estudio Contable Eficiente - Contadores Unidos MX
+ */
+
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";

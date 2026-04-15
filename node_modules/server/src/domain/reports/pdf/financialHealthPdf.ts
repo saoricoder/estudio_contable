@@ -1,3 +1,9 @@
+/*
+ * Desarrollado por: Saori Coder
+ * Contacto: https://instagram.com/saoricoder
+ * Proyecto: Estudio Contable Eficiente - Contadores Unidos MX
+ */
+
 import PDFDocument from "pdfkit";
 import type { FinancialHealthDetails } from "../financialHealth.service";
 

@@ -1,3 +1,9 @@
+/*
+ * Desarrollado por: Saori Coder
+ * Contacto: https://instagram.com/saoricoder
+ * Proyecto: Estudio Contable Eficiente - Contadores Unidos MX
+ */
+
 import { Link, NavLink, Outlet } from "react-router-dom";
 import {
   Bell,
@@ -8,6 +14,7 @@ import {
   Receipt,
   ShieldCheck,
 } from "lucide-react";
+import { Footer } from "../components/Footer";
 
 const nav = [
   { to: "/clients", label: "Clientes", Icon: Building2 },
@@ -20,7 +27,7 @@ const nav = [
 
 export function AppShell({ onLogout }: { onLogout: () => void }) {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
           <Link to="/" className="flex items-center gap-3">
@@ -43,36 +50,40 @@ export function AppShell({ onLogout }: { onLogout: () => void }) {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-6xl gap-4 px-4 py-6 lg:grid-cols-[240px_1fr]">
-        <aside className="rounded-2xl border bg-white p-3 shadow-sm">
-          <div className="px-3 py-2 text-xs font-medium text-slate-500">
-            Módulos
-          </div>
-          <nav className="grid gap-1">
-            {nav.map(({ to, label, Icon }) => (
-              <NavLink
-                key={to}
-                to={to}
-                className={({ isActive }) =>
-                  [
-                    "flex items-center gap-2 rounded-xl px-3 py-2 text-sm",
-                    isActive
-                      ? "bg-slate-100 font-medium text-slate-900"
-                      : "text-slate-700 hover:bg-slate-50",
-                  ].join(" ")
-                }
-              >
-                <Icon className="size-4" aria-hidden={true} />
-                {label}
-              </NavLink>
-            ))}
-          </nav>
-        </aside>
+      <div className="flex-1">
+        <div className="mx-auto grid max-w-6xl gap-4 px-4 py-6 lg:grid-cols-[240px_1fr]">
+          <aside className="rounded-2xl border bg-white p-3 shadow-sm">
+            <div className="px-3 py-2 text-xs font-medium text-slate-500">
+              Módulos
+            </div>
+            <nav className="grid gap-1">
+              {nav.map(({ to, label, Icon }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  className={({ isActive }) =>
+                    [
+                      "flex items-center gap-2 rounded-xl px-3 py-2 text-sm",
+                      isActive
+                        ? "bg-slate-100 font-medium text-slate-900"
+                        : "text-slate-700 hover:bg-slate-50",
+                    ].join(" ")
+                  }
+                >
+                  <Icon className="size-4" aria-hidden={true} />
+                  {label}
+                </NavLink>
+              ))}
+            </nav>
+          </aside>
 
-        <main className="min-w-0">
-          <Outlet />
-        </main>
+          <main className="min-w-0">
+            <Outlet />
+          </main>
+        </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

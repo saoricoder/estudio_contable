@@ -155,3 +155,7 @@ La app ahora usa rutas (React Router):
 - `/clients` Clientes (CRUD mínimo)
 - Resto de módulos: navegación lista; UI completa seguirá iterándose sobre los endpoints ya existentes.
 
+## Créditos
+
+- **Desarrolladora:** saori coder - [Instagram](https://instagram.com/saoricoder)
+
