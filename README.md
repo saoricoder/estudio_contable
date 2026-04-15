@@ -91,6 +91,18 @@ Para endpoints protegidos, enviar header:
 - `PATCH /api/invoices/recurring/:id`
 - `DELETE /api/invoices/recurring/:id`
 
+### Conciliación bancaria (protegido)
+
+- `GET /api/banking/movements` (movimientos internos / libro)
+- `POST /api/banking/movements`
+  - body: `{ "date": "2026-04-01T00:00:00.000Z", "description": "Pago proveedor", "reference?": "REF123", "amount": -1500.5, "type": "DEBIT" }`
+- `GET /api/banking/statements` (líneas de estado de cuenta)
+- `POST /api/banking/statements`
+  - body: `{ "date": "2026-04-01T00:00:00.000Z", "description": "SPEI a proveedor", "reference?": "SPEI999", "amount": -1500.5, "type": "DEBIT" }`
+- `POST /api/banking/match`
+  - body: `{ "movementId": "<uuid>", "statementLineId": "<uuid>" }`
+- `DELETE /api/banking/match/movement/:movementId`
+
 ## Despliegue en Vercel
 
 El repo incluye `vercel.json`:

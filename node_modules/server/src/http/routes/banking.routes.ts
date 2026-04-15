@@ -1,0 +1,84 @@
+import { Router } from "express";
+import { authJwt } from "../middlewares/authJwt";
+import { validateBody } from "../middlewares/validateBody";
+import {
+  matchCreateSchema,
+  movementCreateSchema,
+  statementLineCreateSchema,
+} from "../../domain/banking/banking.schemas";
+import { BankingService } from "../../domain/banking/banking.service";
+
+export const bankingRouter = Router();
+const bankingService = new BankingService();
+
+bankingRouter.use(authJwt);
+
+bankingRouter.get("/banking/movements", async (_req, res, next) => {
+  try {
+    const data = await bankingService.listMovements();
+    res.json({ data });
+  } catch (e) {
+    next(e);
+  }
+});
+
+bankingRouter.post(
+  "/banking/movements",
+  validateBody(movementCreateSchema),
+  async (req, res, next) => {
+    try {
+      const data = await bankingService.createMovement(req.body);
+      res.status(201).json({ data });
+    } catch (e) {
+      next(e);
+    }
+  },
+);
+
+bankingRouter.get("/banking/statements", async (_req, res, next) => {
+  try {
+    const data = await bankingService.listStatements();
+    res.json({ data });
+  } catch (e) {
+    next(e);
+  }
+});
+
+bankingRouter.post(
+  "/banking/statements",
+  validateBody(statementLineCreateSchema),
+  async (req, res, next) => {
+    try {
+      const data = await bankingService.createStatementLine(req.body);
+      res.status(201).json({ data });
+    } catch (e) {
+      next(e);
+    }
+  },
+);
+
+bankingRouter.post(
+  "/banking/match",
+  validateBody(matchCreateSchema),
+  async (req, res, next) => {
+    try {
+      const data = await bankingService.match(req.body);
+      res.status(201).json({ data });
+    } catch (e) {
+      next(e);
+    }
+  },
+);
+
+bankingRouter.delete("/banking/match/movement/:movementId", async (req, res, next) => {
+  try {
+    const id = Array.isArray(req.params.movementId)
+      ? req.params.movementId[0]
+      : req.params.movementId;
+    const data = await bankingService.unmatchByMovement(id);
+    res.json({ data });
+  } catch (e) {
+    next(e);
+  }
+});
+

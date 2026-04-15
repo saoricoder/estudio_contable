@@ -33,6 +33,12 @@ function App() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [invoicesError, setInvoicesError] = useState<string | null>(null);
 
+  const [movements, setMovements] = useState<any[]>([]);
+  const [statements, setStatements] = useState<any[]>([]);
+  const [bankingError, setBankingError] = useState<string | null>(null);
+  const [selectedMovementId, setSelectedMovementId] = useState<string | null>(null);
+  const [selectedStatementId, setSelectedStatementId] = useState<string | null>(null);
+
   useEffect(() => {
     setToken(jwt);
   }, [jwt]);
@@ -105,6 +111,51 @@ function App() {
       setInvoices(res.data);
     } catch (e) {
       setInvoicesError(e instanceof Error ? e.message : "Error");
+    }
+  }
+
+  async function loadBanking() {
+    setBankingError(null);
+    try {
+      const [mRes, sRes] = await Promise.all([
+        apiGet<{ data: any[] }>(`/api/banking/movements`),
+        apiGet<{ data: any[] }>(`/api/banking/statements`),
+      ]);
+      setMovements(mRes.data);
+      setStatements(sRes.data);
+    } catch (e) {
+      setBankingError(e instanceof Error ? e.message : "Error");
+    }
+  }
+
+  async function matchSelected() {
+    if (!selectedMovementId || !selectedStatementId) return;
+    setBankingError(null);
+    try {
+      await apiPost(`/api/banking/match`, {
+        movementId: selectedMovementId,
+        statementLineId: selectedStatementId,
+      });
+      setSelectedMovementId(null);
+      setSelectedStatementId(null);
+      await loadBanking();
+    } catch (e) {
+      setBankingError(e instanceof Error ? e.message : "Error");
+    }
+  }
+
+  async function unmatchMovement(movementId: string) {
+    setBankingError(null);
+    try {
+      const res = await fetch(`/api/banking/match/movement/${movementId}`, {
+        method: "DELETE",
+        headers: jwt ? { Authorization: `Bearer ${jwt}` } : undefined,
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error?.message ?? "Request failed");
+      await loadBanking();
+    } catch (e) {
+      setBankingError(e instanceof Error ? e.message : "Error");
     }
   }
 
@@ -344,6 +395,154 @@ function App() {
               Calcula para ver desglose (IMSS aproximado + subsidio MVP).
             </div>
           )}
+        </section>
+
+        <section className="mt-6 rounded-2xl border bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div className="font-semibold text-slate-900">Conciliación bancaria (MVP)</div>
+            <div className="flex items-center gap-2">
+              <button
+                className="h-9 rounded-xl border px-3 text-sm font-medium text-slate-900 disabled:opacity-60"
+                onClick={loadBanking}
+                disabled={!isAuthed}
+              >
+                Cargar
+              </button>
+              <button
+                className="h-9 rounded-xl bg-ink-950 px-3 text-sm font-medium text-white disabled:opacity-60"
+                onClick={matchSelected}
+                disabled={!isAuthed || !selectedMovementId || !selectedStatementId}
+                title={!selectedMovementId || !selectedStatementId ? "Selecciona 1 movimiento y 1 línea" : "Conciliar"}
+              >
+                Conciliar
+              </button>
+            </div>
+          </div>
+          <div className="mt-2 text-sm text-slate-600">
+            Selecciona un movimiento (libro) y una línea (estado de cuenta) y marca el match.
+          </div>
+          {bankingError ? (
+            <div className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-800">
+              {bankingError}
+            </div>
+          ) : null}
+
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <div className="overflow-x-auto rounded-2xl border">
+              <div className="border-b bg-slate-50 px-4 py-2 text-xs font-medium text-slate-600">
+                Movimientos (Libro)
+              </div>
+              <table className="w-full min-w-[520px] text-left text-sm">
+                <thead className="text-xs text-slate-500">
+                  <tr className="border-b">
+                    <th className="py-2 px-4">Sel</th>
+                    <th className="py-2 pr-3">Fecha</th>
+                    <th className="py-2 pr-3">Descripción</th>
+                    <th className="py-2 pr-3">Monto</th>
+                    <th className="py-2 pr-3">Match</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {movements.length === 0 ? (
+                    <tr>
+                      <td className="py-3 px-4 text-slate-500" colSpan={5}>
+                        Sin datos.
+                      </td>
+                    </tr>
+                  ) : (
+                    movements.map((m) => (
+                      <tr key={m.id} className="border-b last:border-b-0">
+                        <td className="py-2 px-4">
+                          <input
+                            type="radio"
+                            name="movement"
+                            checked={selectedMovementId === m.id}
+                            onChange={() => setSelectedMovementId(m.id)}
+                            disabled={Boolean(m.match)}
+                            title={m.match ? "Ya conciliado" : "Seleccionar"}
+                          />
+                        </td>
+                        <td className="py-2 pr-3 font-mono text-xs text-slate-700">
+                          {String(m.date)}
+                        </td>
+                        <td className="py-2 pr-3 text-slate-700">{m.description}</td>
+                        <td className="py-2 pr-3 font-mono text-xs text-slate-700">
+                          {String(m.amount)}
+                        </td>
+                        <td className="py-2 pr-3">
+                          {m.match ? (
+                            <button
+                              className="rounded-lg border px-2 py-1 text-xs"
+                              onClick={() => unmatchMovement(m.id)}
+                            >
+                              Desmarcar
+                            </button>
+                          ) : (
+                            <span className="text-xs text-slate-500">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border">
+              <div className="border-b bg-slate-50 px-4 py-2 text-xs font-medium text-slate-600">
+                Estado de cuenta
+              </div>
+              <table className="w-full min-w-[520px] text-left text-sm">
+                <thead className="text-xs text-slate-500">
+                  <tr className="border-b">
+                    <th className="py-2 px-4">Sel</th>
+                    <th className="py-2 pr-3">Fecha</th>
+                    <th className="py-2 pr-3">Descripción</th>
+                    <th className="py-2 pr-3">Monto</th>
+                    <th className="py-2 pr-3">Match</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {statements.length === 0 ? (
+                    <tr>
+                      <td className="py-3 px-4 text-slate-500" colSpan={5}>
+                        Sin datos.
+                      </td>
+                    </tr>
+                  ) : (
+                    statements.map((s) => (
+                      <tr key={s.id} className="border-b last:border-b-0">
+                        <td className="py-2 px-4">
+                          <input
+                            type="radio"
+                            name="statement"
+                            checked={selectedStatementId === s.id}
+                            onChange={() => setSelectedStatementId(s.id)}
+                            disabled={Boolean(s.match)}
+                            title={s.match ? "Ya conciliado" : "Seleccionar"}
+                          />
+                        </td>
+                        <td className="py-2 pr-3 font-mono text-xs text-slate-700">
+                          {String(s.date)}
+                        </td>
+                        <td className="py-2 pr-3 text-slate-700">{s.description}</td>
+                        <td className="py-2 pr-3 font-mono text-xs text-slate-700">
+                          {String(s.amount)}
+                        </td>
+                        <td className="py-2 pr-3">
+                          {s.match ? (
+                            <span className="text-xs text-emerald-700">Conciliado</span>
+                          ) : (
+                            <span className="text-xs text-slate-500">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </section>
 
         <section className="mt-6 rounded-2xl border bg-white p-5 shadow-sm">

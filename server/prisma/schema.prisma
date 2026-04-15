@@ -56,3 +56,55 @@ model RecurringInvoice {
   @@index([clientId])
   @@index([active, nextRunDate])
 }
+
+enum BankEntryType {
+  CREDIT
+  DEBIT
+}
+
+enum BankEntrySource {
+  BOOK     // movimiento interno (contabilidad)
+  BANK     // estado de cuenta
+}
+
+model BankMovement {
+  id          String          @id @default(uuid())
+  date        DateTime
+  description String
+  reference   String?
+  amount      Decimal         @db.Decimal(14, 2) // + ingreso, - egreso
+  type        BankEntryType
+  source      BankEntrySource @default(BOOK)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  match BankReconciliationMatch?
+
+  @@index([date])
+}
+
+model BankStatementLine {
+  id          String          @id @default(uuid())
+  date        DateTime
+  description String
+  reference   String?
+  amount      Decimal         @db.Decimal(14, 2)
+  type        BankEntryType
+  source      BankEntrySource @default(BANK)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  match BankReconciliationMatch?
+
+  @@index([date])
+}
+
+model BankReconciliationMatch {
+  id              String            @id @default(uuid())
+  movementId      String            @unique
+  statementLineId String            @unique
+  createdAt       DateTime          @default(now())
+
+  movement      BankMovement      @relation(fields: [movementId], references: [id], onDelete: Cascade)
+  statementLine BankStatementLine @relation(fields: [statementLineId], references: [id], onDelete: Cascade)
+}
