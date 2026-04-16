@@ -1,4 +1,9 @@
 "use strict";
+/*
+ * Desarrollado por: Saori Coder
+ * Contacto: https://instagram.com/saoricoder
+ * Proyecto: Estudio Contable Eficiente - Contadores Unidos MX
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.errorHandler = errorHandler;
 function errorHandler(err, _req, res, _next) {

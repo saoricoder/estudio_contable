@@ -1,4 +1,9 @@
 "use strict";
+/*
+ * Desarrollado por: Saori Coder
+ * Contacto: https://instagram.com/saoricoder
+ * Proyecto: Estudio Contable Eficiente - Contadores Unidos MX
+ */
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };

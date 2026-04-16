@@ -1,4 +1,9 @@
 "use strict";
+/*
+ * Desarrollado por: Saori Coder
+ * Contacto: https://instagram.com/saoricoder
+ * Proyecto: Estudio Contable Eficiente - Contadores Unidos MX
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SubsidyService = void 0;
 // Subsidio para el empleo 2026 (Decreto DOF 31/12/2025):

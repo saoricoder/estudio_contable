@@ -1,4 +1,9 @@
 "use strict";
+/*
+ * Desarrollado por: Saori Coder
+ * Contacto: https://instagram.com/saoricoder
+ * Proyecto: Estudio Contable Eficiente - Contadores Unidos MX
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 const app_1 = require("./app");
 const env_1 = require("./config/env");

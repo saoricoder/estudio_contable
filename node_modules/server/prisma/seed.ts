@@ -4,29 +4,18 @@
  * Proyecto: Estudio Contable Eficiente - Contadores Unidos MX
  */
 
-import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 
-const prisma = new PrismaClient();
+import { prisma } from "../src/config/prisma";
 
 async function assertSchemaPresent() {
-  // If migrations haven't been applied, Prisma will throw P2021 on any model access.
-  // We proactively detect it and provide a clearer message.
   try {
-    const rows = await prisma.$queryRaw<Array<{ regclass: string | null }>>`
-      SELECT to_regclass('"Declaration"')::text as regclass
-    `;
-    const regclass = rows?.[0]?.regclass ?? null;
-    if (!regclass) {
+    await prisma.declaration.count();
+  } catch (e: unknown) {
+    const code = typeof e === "object" && e !== null && "code" in e ? String((e as { code?: string }).code) : "";
+    if (code === "P2021") {
       throw new Error(
-        'La base de datos aún no tiene las tablas de Prisma. Ejecuta primero "npm run prisma:migrate" (local) o "prisma migrate deploy" (producción) y luego vuelve a correr el seed.',
-      );
-    }
-  } catch (e) {
-    // If even this fails, rethrow with a helpful message.
-    if (e instanceof Error) {
-      throw new Error(
-        `No se pudo verificar el esquema en la base de datos. Asegúrate de haber aplicado migraciones antes del seed. Detalle: ${e.message}`,
+        'Faltan tablas en la base de datos. Desde la carpeta `server` ejecuta `npx prisma migrate deploy` y luego vuelve a correr `npm run seed`.',
       );
     }
     throw e;

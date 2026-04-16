@@ -10,7 +10,8 @@
     "build": "npm run build -w server && npm run build -w client",
     "lint": "npm run lint -w server && npm run lint -w client",
     "seed": "npm run seed -w server",
-    "prisma:seed": "npm run prisma:seed -w server"
+    "prisma:seed": "npm run prisma:seed -w server",
+    "prisma:migrate:deploy": "npm run prisma:migrate:deploy -w server"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
