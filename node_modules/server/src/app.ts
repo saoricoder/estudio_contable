@@ -23,6 +23,30 @@ import { analyticsRouter } from "./http/routes/analytics.routes";
 
 export const app = express();
 
+/** En Vercel, el rewrite `/api/*` → `/api` a veces deja `req.url` sin prefijo `/api`; Express debe ver `/api/...`. */
+app.use((req, _res, next) => {
+  if (!process.env.VERCEL) {
+    next();
+    return;
+  }
+  const cur = req.url ?? "/";
+  if (cur.startsWith("/api")) {
+    next();
+    return;
+  }
+  const h = req.headers as Record<string, string | string[] | undefined>;
+  const fromHeader = [h["x-invoke-path"], h["x-url"]].find((v) => typeof v === "string") as
+    | string
+    | undefined;
+  if (fromHeader?.startsWith("/api")) {
+    const qIdx = cur.indexOf("?");
+    const query = qIdx >= 0 ? cur.slice(qIdx) : "";
+    const pathOnly = fromHeader.split("?")[0] ?? fromHeader;
+    req.url = pathOnly + query;
+  }
+  next();
+});
+
 app.use(helmet());
 app.use(
   cors({
