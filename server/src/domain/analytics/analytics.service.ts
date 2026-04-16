@@ -52,16 +52,16 @@ export class AnalyticsService {
       row[st] = (row[st] ?? 0) + 1;
     }
 
-    const grouped = await prisma.recurringInvoice.groupBy({
-      by: ["paymentStatus"],
-      _count: { _all: true },
+    // findMany + agregación (más compatible que groupBy con enums/columnas nuevas)
+    const invoiceRows = await prisma.recurringInvoice.findMany({
+      select: { paymentStatus: true },
     });
 
     let paid = 0;
     let pending = 0;
-    for (const g of grouped) {
-      if (g.paymentStatus === "PAID") paid = g._count._all;
-      else pending += g._count._all;
+    for (const r of invoiceRows) {
+      if (r.paymentStatus === "PAID") paid += 1;
+      else pending += 1;
     }
 
     return {
