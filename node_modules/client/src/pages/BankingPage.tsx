@@ -5,9 +5,12 @@
  */
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { apiGet, apiPost, authHeader } from "../lib/api";
+import { TableSkeleton } from "../components/TableSkeleton";
 
 export function BankingPage() {
+  const [loading, setLoading] = useState(true);
   const [movements, setMovements] = useState<any[]>([]);
   const [statements, setStatements] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +38,7 @@ export function BankingPage() {
 
   async function load() {
     setError(null);
+    setLoading(true);
     try {
       const [mRes, sRes] = await Promise.all([
         apiGet<{ data: any[] }>(`/api/banking/movements`),
@@ -43,7 +47,11 @@ export function BankingPage() {
       setMovements(mRes.data);
       setStatements(sRes.data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -55,9 +63,12 @@ export function BankingPage() {
         reference: newMovement.reference || undefined,
         amount: Number(newMovement.amount),
       });
+      toast.success("Movimiento creado.");
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
     }
   }
 
@@ -69,25 +80,37 @@ export function BankingPage() {
         reference: newStatement.reference || undefined,
         amount: Number(newStatement.amount),
       });
+      toast.success("Línea de estado de cuenta creada.");
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
     }
   }
 
-  async function matchSelected() {
-    if (!selectedMovementId || !selectedStatementId) return;
+  async function matchPair(movementId: string | null, statementLineId: string | null) {
+    if (!movementId || !statementLineId) return;
     setError(null);
     try {
-      await apiPost(`/api/banking/match`, {
-        movementId: selectedMovementId,
-        statementLineId: selectedStatementId,
+      const res = await apiPost<{
+        data: { invoiceMarkedPaid?: boolean; markedInvoiceId?: string | null };
+      }>(`/api/banking/match`, {
+        movementId,
+        statementLineId,
       });
       setSelectedMovementId(null);
       setSelectedStatementId(null);
+      toast.success(
+        res.data?.invoiceMarkedPaid
+          ? "Conciliación lista. Factura recurrente marcada como PAGADA (monto coincide)."
+          : "Conciliación lista.",
+      );
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
     }
   }
 
@@ -100,9 +123,12 @@ export function BankingPage() {
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error?.message ?? "Request failed");
+      toast.success("Match desmarcado.");
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
     }
   }
 
@@ -119,9 +145,12 @@ export function BankingPage() {
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error?.message ?? "No se pudo actualizar categoría");
+      toast.success("Categoría actualizada.");
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
     }
   }
 
@@ -134,9 +163,12 @@ export function BankingPage() {
       });
       setImportResult(`Importadas: ${res.data.inserted}`);
       setCsvText("");
+      toast.success(`Importadas ${res.data.inserted} líneas.`);
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
     }
   }
 
@@ -150,7 +182,9 @@ export function BankingPage() {
       });
       setSuggestions(res.data.suggestions);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
     }
   }
 
@@ -173,7 +207,7 @@ export function BankingPage() {
             </button>
             <button
               className="h-9 rounded-xl bg-ink-950 px-3 text-sm font-medium text-white disabled:opacity-60"
-              onClick={matchSelected}
+              onClick={() => void matchPair(selectedMovementId, selectedStatementId)}
               disabled={!selectedMovementId || !selectedStatementId}
             >
               Conciliar
@@ -316,6 +350,9 @@ export function BankingPage() {
           <div className="border-b bg-slate-50 px-4 py-2 text-xs font-medium text-slate-600">
             Movimientos (Libro)
           </div>
+          {loading ? (
+            <TableSkeleton rows={5} cols={6} />
+          ) : (
           <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="text-xs text-slate-500">
               <tr className="border-b">
@@ -389,12 +426,16 @@ export function BankingPage() {
               )}
             </tbody>
           </table>
+          )}
         </div>
 
         <div className="overflow-x-auto rounded-2xl border bg-white shadow-sm">
           <div className="border-b bg-slate-50 px-4 py-2 text-xs font-medium text-slate-600">
             Estado de cuenta
           </div>
+          {loading ? (
+            <TableSkeleton rows={5} cols={6} />
+          ) : (
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="text-xs text-slate-500">
               <tr className="border-b">
@@ -457,6 +498,7 @@ export function BankingPage() {
               )}
             </tbody>
           </table>
+          )}
         </div>
       </div>
 
@@ -503,10 +545,10 @@ export function BankingPage() {
                           className="rounded-lg border px-2 py-1 text-xs disabled:opacity-60"
                           onClick={() => {
                             if (!selectedStatementForSuggest) return;
-                            setSelectedMovementId(m.id);
-                            setSelectedStatementId(selectedStatementForSuggest);
-                            void matchSelected();
-                            setSuggestions(null);
+                            void (async () => {
+                              await matchPair(m.id, selectedStatementForSuggest);
+                              setSuggestions(null);
+                            })();
                           }}
                           disabled={!selectedStatementForSuggest}
                         >

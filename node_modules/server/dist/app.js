@@ -24,6 +24,7 @@ const banking_routes_1 = require("./http/routes/banking.routes");
 const declarations_routes_1 = require("./http/routes/declarations.routes");
 const alerts_routes_1 = require("./http/routes/alerts.routes");
 const reports_routes_1 = require("./http/routes/reports.routes");
+const analytics_routes_1 = require("./http/routes/analytics.routes");
 exports.app = (0, express_1.default)();
 exports.app.use((0, helmet_1.default)());
 exports.app.use((0, cors_1.default)({
@@ -44,4 +45,5 @@ exports.app.use("/api", banking_routes_1.bankingRouter);
 exports.app.use("/api", declarations_routes_1.declarationsRouter);
 exports.app.use("/api", alerts_routes_1.alertsRouter);
 exports.app.use("/api", reports_routes_1.reportsRouter);
+exports.app.use("/api", analytics_routes_1.analyticsRouter);
 exports.app.use(errorHandler_1.errorHandler);

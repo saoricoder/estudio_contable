@@ -27,6 +27,8 @@ class RecurringInvoiceService {
                 clientId: input.clientId,
                 concept: input.concept,
                 amount: input.amount, // Prisma Decimal accepts number at runtime
+                pendingBalance: input.amount,
+                paymentStatus: "PENDING",
                 currency: input.currency,
                 frequency: input.frequency,
                 startDate: new Date(input.startDate),
@@ -37,17 +39,24 @@ class RecurringInvoiceService {
         });
     }
     async update(id, input) {
-        const existing = await prisma_1.prisma.recurringInvoice.findUnique({ where: { id }, select: { id: true } });
+        const existing = await prisma_1.prisma.recurringInvoice.findUnique({
+            where: { id },
+            select: { id: true, paymentStatus: true },
+        });
         if (!existing) {
             const err = new Error("Recurring invoice not found");
             err.status = 404;
             throw err;
         }
+        const pendingBalance = input.amount != null && existing.paymentStatus !== "PAID"
+            ? input.amount
+            : undefined;
         return prisma_1.prisma.recurringInvoice.update({
             where: { id },
             data: {
                 ...input,
                 amount: input.amount == null ? undefined : input.amount,
+                pendingBalance,
                 startDate: input.startDate == null ? undefined : new Date(input.startDate),
                 nextRunDate: input.nextRunDate == null ? undefined : new Date(input.nextRunDate),
             },

@@ -4,11 +4,15 @@
  * Proyecto: Estudio Contable Eficiente - Contadores Unidos MX
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { apiGet, apiPost, authHeader } from "../lib/api";
+import { isValidRfc } from "../lib/rfc";
+import { TableSkeleton } from "../components/TableSkeleton";
 
 export function ClientsPage() {
   const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
@@ -20,28 +24,44 @@ export function ClientsPage() {
 
   async function load() {
     setError(null);
+    setLoading(true);
     try {
       const res = await apiGet<{ data: any[] }>(`/api/clients`);
       setData(res.data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setLoading(false);
     }
   }
 
   async function create() {
     setError(null);
+    const rfc = form.rfc.trim().toUpperCase();
+    if (!isValidRfc(rfc)) {
+      const msg =
+        "RFC inválido: persona moral 12 caracteres; persona física 13 (solo letras/números permitidos).";
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
     try {
       await apiPost(`/api/clients`, {
         name: form.name,
-        rfc: form.rfc,
+        rfc,
         regimen: form.regimen,
         email: form.email || undefined,
         phone: form.phone || undefined,
       });
       setForm({ name: "", rfc: "", regimen: "601", email: "", phone: "" });
+      toast.success("Cliente guardado.");
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
     }
   }
 
@@ -51,11 +71,19 @@ export function ClientsPage() {
       const res = await fetch(`/api/clients/${id}`, { method: "DELETE", headers: authHeader() });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error?.message ?? "No se pudo eliminar");
+      toast.success("Cliente eliminado.");
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
     }
   }
+
+  useEffect(() => {
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="grid gap-4">
@@ -78,10 +106,12 @@ export function ClientsPage() {
             onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
           <input
-            className="h-10 rounded-xl border px-3 text-sm"
-            placeholder="RFC"
+            className="h-10 rounded-xl border px-3 text-sm font-mono uppercase"
+            placeholder="RFC (12 o 13 caracteres)"
             value={form.rfc}
-            onChange={(e) => setForm({ ...form, rfc: e.target.value })}
+            onChange={(e) => setForm({ ...form, rfc: e.target.value.toUpperCase() })}
+            maxLength={13}
+            autoComplete="off"
           />
           <input
             className="h-10 rounded-xl border px-3 text-sm"
@@ -119,6 +149,9 @@ export function ClientsPage() {
       </div>
 
       <div className="overflow-x-auto rounded-2xl border bg-white shadow-sm">
+        {loading ? (
+          <TableSkeleton rows={5} cols={4} />
+        ) : (
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead className="text-xs text-slate-500">
             <tr className="border-b">
@@ -158,6 +191,7 @@ export function ClientsPage() {
             )}
           </tbody>
         </table>
+        )}
       </div>
     </div>
   );

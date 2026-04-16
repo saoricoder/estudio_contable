@@ -146,10 +146,7 @@ async function main() {
   }
 
   // 3) Facturación recurrente (10)
-  // No existe campo "estatus" en RecurringInvoice; simulamos "Pagada/Pendiente/Vencida" con nextRunDate.
-  // - Pagada: nextRunDate posterior a abril
-  // - Pendiente: nextRunDate en abril
-  // - Vencida: nextRunDate antes de abril
+  // Estatus real: paymentStatus + pendingBalance (saldo a cobrar).
   const invoiceTemplates = [
     { concept: "Honorarios contables mensuales", amount: 2500, freq: "MONTHLY" as const },
     { concept: "Declaraciones provisionales (servicio)", amount: 3200, freq: "MONTHLY" as const },
@@ -162,21 +159,31 @@ async function main() {
   for (let i = 0; i < 10; i++) {
     const c = clients[i % clients.length]!;
     const tpl = invoiceTemplates[i % invoiceTemplates.length]!;
-    const statusTag = i < 4 ? "PAGADA" : i < 7 ? "PENDIENTE" : "VENCIDA";
+    const bucket = i < 4 ? "DEMO_PAGO" : i < 7 ? "PENDIENTE" : "VENCIDA";
 
     const startDate = d("2026-01-01T00:00:00.000Z");
     const nextRunDate =
-      statusTag === "PAGADA"
+      bucket === "DEMO_PAGO"
         ? d("2026-06-01T00:00:00.000Z")
-        : statusTag === "PENDIENTE"
+        : bucket === "PENDIENTE"
           ? d("2026-04-17T00:00:00.000Z")
           : d("2026-02-01T00:00:00.000Z");
+
+    const paymentStatus =
+      bucket === "DEMO_PAGO"
+        ? ("PENDING" as const)
+        : bucket === "PENDIENTE"
+          ? ("PENDING" as const)
+          : ("OVERDUE" as const);
+    const pendingBalance = tpl.amount as any;
 
     const inv = await prisma.recurringInvoice.create({
       data: {
         clientId: c.id,
-        concept: `[${statusTag}] ${tpl.concept}`,
+        concept: `[${bucket}] ${tpl.concept}`,
         amount: tpl.amount as any,
+        pendingBalance,
+        paymentStatus,
         currency: "MXN",
         frequency: tpl.freq,
         startDate,
@@ -189,9 +196,8 @@ async function main() {
     invoices.push(inv);
   }
 
-  // 4) Conciliación bancaria (movimientos + estado de cuenta + matches)
-  // Creamos ingresos que empatan montos de algunas "PAGADA" para probar match + PDF (usa movimientos conciliados).
-  const paidInvoices = invoices.filter((x) => x.concept.startsWith("[PAGADA]"));
+  // 4) Conciliación bancaria: primeras 4 facturas demo tienen saldo pendiente = monto (conciliación → PAID).
+  const paidInvoices = invoices.filter((x) => x.concept.startsWith("[DEMO_PAGO]"));
   for (let i = 0; i < paidInvoices.length; i++) {
     const inv = paidInvoices[i]!;
     const baseDate = new Date(Date.UTC(2026, 3, 8 + i, 0, 0, 0)); // abril 2026
@@ -200,7 +206,7 @@ async function main() {
     const movement = await prisma.bankMovement.create({
       data: {
         date: baseDate,
-        description: `Pago recibido: ${inv.concept.replace(/\\[PAGADA\\]\\s*/, "")}`,
+        description: `Pago recibido: ${inv.concept.replace(/\\[DEMO_PAGO\\]\\s*/, "")}`,
         reference: `INV-${String(i + 1).padStart(3, "0")}`,
         amount: amount as any,
         type: "CREDIT",

@@ -15,6 +15,7 @@ import { InvoicesPage } from "./pages/InvoicesPage";
 import { BankingPage } from "./pages/BankingPage";
 import { DeclarationsPage } from "./pages/DeclarationsPage";
 import { AlertsPage } from "./pages/AlertsPage";
+import { AnalyticsPage } from "./pages/AnalyticsPage";
 
 export default function Router() {
   const [jwt, setJwt] = useState<string | null>(() => localStorage.getItem("jwt"));
@@ -39,6 +40,7 @@ export default function Router() {
         <Route path="/banking" element={<BankingPage />} />
         <Route path="/declarations" element={<DeclarationsPage />} />
         <Route path="/alerts" element={<AlertsPage />} />
+        <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="*" element={<Navigate to="/clients" replace />} />
       </Route>
     </Routes>

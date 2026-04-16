@@ -17,3 +17,10 @@ export const payrollCalculateSchema = z.object({
 
 export type PayrollCalculateInput = z.infer<typeof payrollCalculateSchema>;
 
+export const payrollSaveSchema = payrollCalculateSchema.extend({
+  employeeName: z.string().min(2).max(200).trim(),
+  fiscalYear: z.coerce.number().int().min(2020).max(2030).default(2026),
+});
+
+export type PayrollSaveInput = z.infer<typeof payrollSaveSchema>;
+

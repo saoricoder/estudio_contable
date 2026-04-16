@@ -131,13 +131,40 @@ class BankingService {
             err.status = 409;
             throw err;
         }
-        // MVP: no obligamos a que monto/fecha coincidan, solo se marca manualmente.
-        return prisma_1.prisma.bankReconciliationMatch.create({
-            data: {
-                movementId: params.movementId,
-                statementLineId: params.statementLineId,
-            },
-            include: { movement: true, statementLine: true },
+        return prisma_1.prisma.$transaction(async (tx) => {
+            const row = await tx.bankReconciliationMatch.create({
+                data: {
+                    movementId: params.movementId,
+                    statementLineId: params.statementLineId,
+                },
+                include: { movement: true, statementLine: true },
+            });
+            let markedInvoiceId = null;
+            if (row.movement.type === "CREDIT") {
+                const creditAmt = roundMoney(Math.abs(Number(row.movement.amount.toString())));
+                const candidates = await tx.recurringInvoice.findMany({
+                    where: {
+                        paymentStatus: { in: ["PENDING", "OVERDUE"] },
+                    },
+                    orderBy: { nextRunDate: "asc" },
+                });
+                for (const inv of candidates) {
+                    const bal = roundMoney(Number(inv.pendingBalance.toString()));
+                    if (amountsMatchInvoicePayment(bal, creditAmt)) {
+                        await tx.recurringInvoice.update({
+                            where: { id: inv.id },
+                            data: { paymentStatus: "PAID", pendingBalance: 0 },
+                        });
+                        markedInvoiceId = inv.id;
+                        break;
+                    }
+                }
+            }
+            return {
+                match: row,
+                invoiceMarkedPaid: markedInvoiceId !== null,
+                markedInvoiceId,
+            };
         });
     }
     async unmatchByMovement(movementId) {
@@ -170,3 +197,10 @@ class BankingService {
     }
 }
 exports.BankingService = BankingService;
+function roundMoney(n) {
+    return Math.round((n + Number.EPSILON) * 100) / 100;
+}
+/** Saldo pendiente vs monto del abono (conciliación 1:1). */
+function amountsMatchInvoicePayment(pending, credit) {
+    return Math.abs(pending - credit) <= 0.01;
+}

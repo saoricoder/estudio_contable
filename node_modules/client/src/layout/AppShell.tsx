@@ -6,6 +6,7 @@
 
 import { Link, NavLink, Outlet } from "react-router-dom";
 import {
+  BarChart3,
   Bell,
   BookOpenCheck,
   Building2,
@@ -18,6 +19,7 @@ import { Footer } from "../components/Footer";
 
 const nav = [
   { to: "/clients", label: "Clientes", Icon: Building2 },
+  { to: "/analytics", label: "Analytics", Icon: BarChart3 },
   { to: "/payroll", label: "Nómina", Icon: Landmark },
   { to: "/invoices", label: "Facturación", Icon: Receipt },
   { to: "/banking", label: "Conciliación", Icon: BookOpenCheck },

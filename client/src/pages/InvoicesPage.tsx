@@ -5,9 +5,24 @@
  */
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { apiGet, apiPost, authHeader } from "../lib/api";
+import { TableSkeleton } from "../components/TableSkeleton";
+
+function paymentLabel(status: string | undefined) {
+  switch (status) {
+    case "PAID":
+      return "Pagada";
+    case "OVERDUE":
+      return "Vencida";
+    case "PENDING":
+    default:
+      return "Pendiente";
+  }
+}
 
 export function InvoicesPage() {
+  const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +42,7 @@ export function InvoicesPage() {
 
   async function load() {
     setError(null);
+    setLoading(true);
     try {
       const [iRes, cRes] = await Promise.all([
         apiGet<{ data: any[] }>(`/api/invoices/recurring`),
@@ -38,7 +54,11 @@ export function InvoicesPage() {
         setForm((f) => ({ ...f, clientId: cRes.data[0].id }));
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -49,9 +69,12 @@ export function InvoicesPage() {
         ...form,
         amount: Number(form.amount),
       });
+      toast.success("Factura recurrente creada.");
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
     }
   }
 
@@ -65,9 +88,12 @@ export function InvoicesPage() {
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error?.message ?? "No se pudo actualizar");
+      toast.success(inv.active ? "Factura desactivada." : "Factura activada.");
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
     }
   }
 
@@ -80,9 +106,12 @@ export function InvoicesPage() {
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error?.message ?? "No se pudo eliminar");
+      toast.success("Factura eliminada.");
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
     }
   }
 
@@ -193,12 +222,17 @@ export function InvoicesPage() {
       </div>
 
       <div className="overflow-x-auto rounded-2xl border bg-white shadow-sm">
-        <table className="w-full min-w-[980px] text-left text-sm">
+        {loading ? (
+          <TableSkeleton rows={5} cols={9} />
+        ) : (
+        <table className="w-full min-w-[1080px] text-left text-sm">
           <thead className="text-xs text-slate-500">
             <tr className="border-b">
               <th className="px-4 py-3">Cliente</th>
               <th className="py-3 pr-3">Concepto</th>
               <th className="py-3 pr-3">Monto</th>
+              <th className="py-3 pr-3">Estado pago</th>
+              <th className="py-3 pr-3">Saldo pendiente</th>
               <th className="py-3 pr-3">Frecuencia</th>
               <th className="py-3 pr-3">Próxima</th>
               <th className="py-3 pr-3">Activa</th>
@@ -208,7 +242,7 @@ export function InvoicesPage() {
           <tbody>
             {items.length === 0 ? (
               <tr>
-                <td className="px-4 py-4 text-slate-500" colSpan={7}>
+                <td className="px-4 py-4 text-slate-500" colSpan={9}>
                   Sin datos.
                 </td>
               </tr>
@@ -221,6 +255,17 @@ export function InvoicesPage() {
                   <td className="py-3 pr-3 text-slate-700">{inv.concept}</td>
                   <td className="py-3 pr-3 font-mono text-xs text-slate-700">
                     {inv.currency} {String(inv.amount)}
+                  </td>
+                  <td className="py-3 pr-3 text-slate-700">
+                    {paymentLabel(inv.paymentStatus)}
+                  </td>
+                  <td className="py-3 pr-3 font-mono text-xs text-slate-700">
+                    {inv.pendingBalance != null
+                      ? Number(inv.pendingBalance).toLocaleString("es-MX", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })
+                      : "—"}
                   </td>
                   <td className="py-3 pr-3 text-slate-700">{inv.frequency}</td>
                   <td className="py-3 pr-3 font-mono text-xs text-slate-700">
@@ -250,6 +295,7 @@ export function InvoicesPage() {
             )}
           </tbody>
         </table>
+        )}
       </div>
     </div>
   );

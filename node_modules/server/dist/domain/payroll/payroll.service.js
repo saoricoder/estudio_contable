@@ -6,6 +6,7 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PayrollService = void 0;
+const prisma_1 = require("../../config/prisma");
 const imss_service_1 = require("./services/imss.service");
 const subsidy_service_1 = require("./services/subsidy.service");
 class PayrollService {
@@ -47,6 +48,31 @@ class PayrollService {
                 "Subsidio 2026: aplica tope y monto mensual decretado; para periodos menores a mes se prorratea con 30.4 días.",
             ],
         };
+    }
+    async save(userId, input) {
+        const { employeeName, fiscalYear, ...calcInput } = input;
+        const result = this.calculate(calcInput);
+        const imssTotal = result.imss.employeeContrib.total;
+        return prisma_1.prisma.payrollHistory.create({
+            data: {
+                userId,
+                employeeName,
+                fiscalYear,
+                grossMonthly: result.gross.monthly,
+                grossPeriod: result.gross.period,
+                imssTotal: imssTotal,
+                subsidyApplied: result.subsidy.subsidyApplied,
+                netEstimate: result.netEstimate,
+                payDate: input.payDate ? new Date(input.payDate) : null,
+            },
+        });
+    }
+    async listHistory(userId) {
+        return prisma_1.prisma.payrollHistory.findMany({
+            where: { userId },
+            orderBy: { calculatedAt: "desc" },
+            take: 200,
+        });
     }
 }
 exports.PayrollService = PayrollService;

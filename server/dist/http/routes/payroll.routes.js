@@ -23,3 +23,29 @@ exports.payrollRouter.post("/payroll/calculate", (0, validateBody_1.validateBody
         next(e);
     }
 });
+exports.payrollRouter.get("/payroll/history", async (req, res, next) => {
+    try {
+        const userId = req.auth?.sub;
+        if (!userId) {
+            return res.status(401).json({ error: { message: "Unauthorized" } });
+        }
+        const data = await payrollService.listHistory(userId);
+        res.json({ data });
+    }
+    catch (e) {
+        next(e);
+    }
+});
+exports.payrollRouter.post("/payroll/history", (0, validateBody_1.validateBody)(payroll_schemas_1.payrollSaveSchema), async (req, res, next) => {
+    try {
+        const userId = req.auth?.sub;
+        if (!userId) {
+            return res.status(401).json({ error: { message: "Unauthorized" } });
+        }
+        const data = await payrollService.save(userId, req.body);
+        res.status(201).json({ data });
+    }
+    catch (e) {
+        next(e);
+    }
+});

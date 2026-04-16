@@ -4,9 +4,10 @@
  * Proyecto: Estudio Contable Eficiente - Contadores Unidos MX
  */
 
+import { prisma } from "../../config/prisma";
 import { ImssService } from "./services/imss.service";
 import { SubsidyService } from "./services/subsidy.service";
-import type { PayrollCalculateInput } from "./payroll.schemas";
+import type { PayrollCalculateInput, PayrollSaveInput } from "./payroll.schemas";
 
 export class PayrollService {
   private imss = new ImssService();
@@ -54,6 +55,34 @@ export class PayrollService {
         "Subsidio 2026: aplica tope y monto mensual decretado; para periodos menores a mes se prorratea con 30.4 días.",
       ],
     };
+  }
+
+  async save(userId: string, input: PayrollSaveInput) {
+    const { employeeName, fiscalYear, ...calcInput } = input;
+    const result = this.calculate(calcInput);
+    const imssTotal = result.imss.employeeContrib.total;
+
+    return prisma.payrollHistory.create({
+      data: {
+        userId,
+        employeeName,
+        fiscalYear,
+        grossMonthly: result.gross.monthly as any,
+        grossPeriod: result.gross.period as any,
+        imssTotal: imssTotal as any,
+        subsidyApplied: result.subsidy.subsidyApplied as any,
+        netEstimate: result.netEstimate as any,
+        payDate: input.payDate ? new Date(input.payDate) : null,
+      },
+    });
+  }
+
+  async listHistory(userId: string) {
+    return prisma.payrollHistory.findMany({
+      where: { userId },
+      orderBy: { calculatedAt: "desc" },
+      take: 200,
+    });
   }
 }
 

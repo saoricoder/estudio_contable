@@ -157,13 +157,42 @@ export class BankingService {
       throw err;
     }
 
-    // MVP: no obligamos a que monto/fecha coincidan, solo se marca manualmente.
-    return prisma.bankReconciliationMatch.create({
-      data: {
-        movementId: params.movementId,
-        statementLineId: params.statementLineId,
-      },
-      include: { movement: true, statementLine: true },
+    return prisma.$transaction(async (tx) => {
+      const row = await tx.bankReconciliationMatch.create({
+        data: {
+          movementId: params.movementId,
+          statementLineId: params.statementLineId,
+        },
+        include: { movement: true, statementLine: true },
+      });
+
+      let markedInvoiceId: string | null = null;
+      if (row.movement.type === "CREDIT") {
+        const creditAmt = roundMoney(Math.abs(Number(row.movement.amount.toString())));
+        const candidates = await tx.recurringInvoice.findMany({
+          where: {
+            paymentStatus: { in: ["PENDING", "OVERDUE"] },
+          },
+          orderBy: { nextRunDate: "asc" },
+        });
+        for (const inv of candidates) {
+          const bal = roundMoney(Number(inv.pendingBalance.toString()));
+          if (amountsMatchInvoicePayment(bal, creditAmt)) {
+            await tx.recurringInvoice.update({
+              where: { id: inv.id },
+              data: { paymentStatus: "PAID", pendingBalance: 0 },
+            });
+            markedInvoiceId = inv.id;
+            break;
+          }
+        }
+      }
+
+      return {
+        match: row,
+        invoiceMarkedPaid: markedInvoiceId !== null,
+        markedInvoiceId,
+      };
     });
   }
 
@@ -196,5 +225,14 @@ export class BankingService {
       data: { category: params.category },
     });
   }
+}
+
+function roundMoney(n: number) {
+  return Math.round((n + Number.EPSILON) * 100) / 100;
+}
+
+/** Saldo pendiente vs monto del abono (conciliación 1:1). */
+function amountsMatchInvoicePayment(pending: number, credit: number) {
+  return Math.abs(pending - credit) <= 0.01;
 }
 

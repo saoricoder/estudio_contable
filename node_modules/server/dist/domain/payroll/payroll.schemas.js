@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.payrollCalculateSchema = void 0;
+exports.payrollSaveSchema = exports.payrollCalculateSchema = void 0;
 const zod_1 = require("zod");
 exports.payrollCalculateSchema = zod_1.z.object({
     // Salario base nominal mensual o diario según `salaryType`
@@ -15,4 +15,8 @@ exports.payrollCalculateSchema = zod_1.z.object({
     payDate: zod_1.z.string().datetime().optional(),
     // Cuando aplique: ISR mensual aproximado (para subsidio). Lo dejamos como opcional.
     isrMonthlyEstimate: zod_1.z.number().min(0).optional(),
+});
+exports.payrollSaveSchema = exports.payrollCalculateSchema.extend({
+    employeeName: zod_1.z.string().min(2).max(200).trim(),
+    fiscalYear: zod_1.z.coerce.number().int().min(2020).max(2030).default(2026),
 });

@@ -7,7 +7,7 @@
 import { Router } from "express";
 import { authJwt } from "../middlewares/authJwt";
 import { validateBody } from "../middlewares/validateBody";
-import { payrollCalculateSchema } from "../../domain/payroll/payroll.schemas";
+import { payrollCalculateSchema, payrollSaveSchema } from "../../domain/payroll/payroll.schemas";
 import { PayrollService } from "../../domain/payroll/payroll.service";
 
 export const payrollRouter = Router();
@@ -22,6 +22,36 @@ payrollRouter.post(
     try {
       const data = payrollService.calculate(req.body);
       res.json({ data });
+    } catch (e) {
+      next(e);
+    }
+  },
+);
+
+payrollRouter.get("/payroll/history", async (req, res, next) => {
+  try {
+    const userId = req.auth?.sub;
+    if (!userId) {
+      return res.status(401).json({ error: { message: "Unauthorized" } });
+    }
+    const data = await payrollService.listHistory(userId);
+    res.json({ data });
+  } catch (e) {
+    next(e);
+  }
+});
+
+payrollRouter.post(
+  "/payroll/history",
+  validateBody(payrollSaveSchema),
+  async (req, res, next) => {
+    try {
+      const userId = req.auth?.sub;
+      if (!userId) {
+        return res.status(401).json({ error: { message: "Unauthorized" } });
+      }
+      const data = await payrollService.save(userId, req.body);
+      res.status(201).json({ data });
     } catch (e) {
       next(e);
     }

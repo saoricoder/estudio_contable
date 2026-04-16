@@ -19,6 +19,7 @@ import { bankingRouter } from "./http/routes/banking.routes";
 import { declarationsRouter } from "./http/routes/declarations.routes";
 import { alertsRouter } from "./http/routes/alerts.routes";
 import { reportsRouter } from "./http/routes/reports.routes";
+import { analyticsRouter } from "./http/routes/analytics.routes";
 
 export const app = express();
 
@@ -45,6 +46,7 @@ app.use("/api", bankingRouter);
 app.use("/api", declarationsRouter);
 app.use("/api", alertsRouter);
 app.use("/api", reportsRouter);
+app.use("/api", analyticsRouter);
 
 app.use(errorHandler);
 
