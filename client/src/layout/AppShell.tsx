@@ -31,7 +31,7 @@ export function AppShell({ onLogout }: { onLogout: () => void }) {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <header className="border-b bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
+        <div className="mx-auto flex w-full max-w-[min(100%,90rem)] items-center justify-between gap-4 px-3 py-4 sm:px-5">
           <Link to="/" className="flex items-center gap-3">
             <div className="grid size-10 place-items-center rounded-xl bg-ink-950 text-white">
               <ShieldCheck className="size-5" aria-hidden={true} />
@@ -53,7 +53,7 @@ export function AppShell({ onLogout }: { onLogout: () => void }) {
       </header>
 
       <div className="flex-1">
-        <div className="mx-auto grid max-w-6xl gap-4 px-4 py-6 lg:grid-cols-[240px_1fr]">
+        <div className="mx-auto grid w-full max-w-[min(100%,90rem)] gap-4 px-3 py-6 sm:px-5 lg:grid-cols-[220px_minmax(0,1fr)]">
           <aside className="rounded-2xl border bg-white p-3 shadow-sm">
             <div className="px-3 py-2 text-xs font-medium text-slate-500">
               Módulos

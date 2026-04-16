@@ -6,6 +6,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { datetimeLocalToIso, formatMxDateTime, isoToDatetimeLocal } from "../lib/format-date";
 import { apiGet, apiPost, authHeader } from "../lib/api";
 import { TableSkeleton } from "../components/TableSkeleton";
 
@@ -137,11 +138,11 @@ export function DeclarationsPage() {
           </div>
         ) : null}
 
-        <div className="mt-4 grid gap-3 md:grid-cols-6">
-          <label className="grid gap-1 md:col-span-2">
+        <div className="mt-4 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <label className="grid min-w-0 gap-1 md:col-span-2">
             <span className="text-xs font-medium text-slate-700">Cliente</span>
             <select
-              className="h-10 rounded-xl border bg-white px-3 text-sm"
+              className="h-10 min-w-0 max-w-full rounded-xl border bg-white px-3 text-sm"
               value={form.clientId}
               onChange={(e) => setForm({ ...form, clientId: e.target.value })}
             >
@@ -152,10 +153,10 @@ export function DeclarationsPage() {
               ))}
             </select>
           </label>
-          <label className="grid gap-1">
+          <label className="grid min-w-0 gap-1">
             <span className="text-xs font-medium text-slate-700">Tipo</span>
             <select
-              className="h-10 rounded-xl border bg-white px-3 text-sm"
+              className="h-10 min-w-0 max-w-full rounded-xl border bg-white px-3 text-sm"
               value={form.type}
               onChange={(e) => setForm({ ...form, type: e.target.value })}
             >
@@ -165,10 +166,10 @@ export function DeclarationsPage() {
               <option value="ANNUAL">ANNUAL</option>
             </select>
           </label>
-          <label className="grid gap-1">
+          <label className="grid min-w-0 gap-1">
             <span className="text-xs font-medium text-slate-700">Estatus</span>
             <select
-              className="h-10 rounded-xl border bg-white px-3 text-sm"
+              className="h-10 min-w-0 max-w-full rounded-xl border bg-white px-3 text-sm"
               value={form.status}
               onChange={(e) => setForm({ ...form, status: e.target.value })}
             >
@@ -179,32 +180,33 @@ export function DeclarationsPage() {
               <option value="OVERDUE">OVERDUE</option>
             </select>
           </label>
-          <label className="grid gap-1">
+          <label className="grid min-w-0 gap-1">
             <span className="text-xs font-medium text-slate-700">Periodo (YYYY-MM)</span>
             <input
-              className="h-10 rounded-xl border px-3 text-sm font-mono"
+              className="h-10 min-w-0 max-w-full rounded-xl border px-3 text-sm font-mono"
               value={form.period}
               onChange={(e) => setForm({ ...form, period: e.target.value })}
               placeholder="2026-04"
             />
           </label>
-          <label className="grid gap-1 md:col-span-1">
-            <span className="text-xs font-medium text-slate-700">Vence (ISO)</span>
+          <label className="grid min-w-0 gap-1">
+            <span className="text-xs font-medium text-slate-700">Fecha de vencimiento</span>
             <input
-              className="h-10 rounded-xl border px-3 text-sm font-mono"
-              value={form.dueDate}
-              onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
+              className="h-10 min-w-0 max-w-full rounded-xl border px-3 text-sm"
+              type="datetime-local"
+              value={isoToDatetimeLocal(form.dueDate)}
+              onChange={(e) => setForm({ ...form, dueDate: datetimeLocalToIso(e.target.value) })}
             />
           </label>
-          <label className="grid gap-1 md:col-span-5">
+          <label className="grid min-w-0 gap-1 lg:col-span-2 xl:col-span-3">
             <span className="text-xs font-medium text-slate-700">Notas (opcional)</span>
             <input
-              className="h-10 rounded-xl border px-3 text-sm"
+              className="h-10 min-w-0 max-w-full rounded-xl border px-3 text-sm"
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
             />
           </label>
-          <div className="md:col-span-1 flex items-end">
+          <div className="flex items-end sm:col-span-2 lg:col-span-1 xl:col-span-1">
             <button
               className="h-10 w-full rounded-xl bg-ink-950 px-3 text-sm font-medium text-white"
               onClick={create}
@@ -226,7 +228,7 @@ export function DeclarationsPage() {
         {loading ? (
           <TableSkeleton rows={5} cols={6} />
         ) : (
-        <table className="w-full min-w-[980px] text-left text-sm">
+        <table className="w-full min-w-[min(100%,720px)] text-left text-sm">
           <thead className="text-xs text-slate-500">
             <tr className="border-b">
               <th className="px-4 py-3">Cliente</th>
@@ -254,8 +256,8 @@ export function DeclarationsPage() {
                   <td className="py-3 pr-3 font-mono text-xs text-slate-700">
                     {d.period}
                   </td>
-                  <td className="py-3 pr-3 font-mono text-xs text-slate-700">
-                    {String(d.dueDate)}
+                  <td className="max-w-[12rem] break-words py-3 pr-3 text-xs text-slate-700">
+                    {formatMxDateTime(d.dueDate)}
                   </td>
                   <td className="py-3 pr-3">
                     <select

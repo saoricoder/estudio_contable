@@ -6,6 +6,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { formatMxDateTime } from "../lib/format-date";
 import { apiGet, authHeader } from "../lib/api";
 import { TableSkeleton } from "../components/TableSkeleton";
 
@@ -108,7 +109,7 @@ export function AlertsPage() {
         {loading ? (
           <TableSkeleton rows={5} cols={4} />
         ) : (
-        <table className="w-full min-w-[980px] text-left text-sm">
+        <table className="w-full min-w-[min(100%,640px)] text-left text-sm">
           <thead className="text-xs text-slate-500">
             <tr className="border-b">
               <th className="px-4 py-3">Nivel</th>
@@ -141,8 +142,8 @@ export function AlertsPage() {
                     </span>
                   </td>
                   <td className="py-3 pr-3 text-slate-700">{a.title}</td>
-                  <td className="py-3 pr-3 font-mono text-xs text-slate-700">
-                    {String(a.dueDate)}
+                  <td className="max-w-[11rem] whitespace-normal break-words py-3 pr-3 text-xs text-slate-700">
+                    {formatMxDateTime(a.dueDate)}
                   </td>
                   <td className="py-3 pr-3 text-slate-700">{a.kind}</td>
                 </tr>

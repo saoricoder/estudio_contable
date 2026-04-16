@@ -6,6 +6,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { datetimeLocalToIso, formatMxDateTime, isoToDatetimeLocal } from "../lib/format-date";
 import { apiGet, apiPost, authHeader } from "../lib/api";
 import { TableSkeleton } from "../components/TableSkeleton";
 
@@ -224,11 +225,14 @@ export function BankingPage() {
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
           <div className="rounded-2xl border bg-slate-50 p-4">
             <div className="text-sm font-semibold text-slate-900">Nuevo movimiento (Libro)</div>
-            <div className="mt-3 grid gap-2 md:grid-cols-2">
+            <div className="mt-3 grid min-w-0 gap-2 md:grid-cols-2">
               <input
-                className="h-10 rounded-xl border px-3 text-sm font-mono"
-                value={newMovement.date}
-                onChange={(e) => setNewMovement({ ...newMovement, date: e.target.value })}
+                className="h-10 min-w-0 max-w-full rounded-xl border px-3 text-sm"
+                type="datetime-local"
+                value={isoToDatetimeLocal(newMovement.date)}
+                onChange={(e) =>
+                  setNewMovement({ ...newMovement, date: datetimeLocalToIso(e.target.value) })
+                }
               />
               <select
                 className="h-10 rounded-xl border bg-white px-3 text-sm"
@@ -272,11 +276,14 @@ export function BankingPage() {
 
           <div className="rounded-2xl border bg-slate-50 p-4">
             <div className="text-sm font-semibold text-slate-900">Nueva línea (Estado de cuenta)</div>
-            <div className="mt-3 grid gap-2 md:grid-cols-2">
+            <div className="mt-3 grid min-w-0 gap-2 md:grid-cols-2">
               <input
-                className="h-10 rounded-xl border px-3 text-sm font-mono"
-                value={newStatement.date}
-                onChange={(e) => setNewStatement({ ...newStatement, date: e.target.value })}
+                className="h-10 min-w-0 max-w-full rounded-xl border px-3 text-sm"
+                type="datetime-local"
+                value={isoToDatetimeLocal(newStatement.date)}
+                onChange={(e) =>
+                  setNewStatement({ ...newStatement, date: datetimeLocalToIso(e.target.value) })
+                }
               />
               <select
                 className="h-10 rounded-xl border bg-white px-3 text-sm"
@@ -353,7 +360,7 @@ export function BankingPage() {
           {loading ? (
             <TableSkeleton rows={5} cols={6} />
           ) : (
-          <table className="w-full min-w-[760px] text-left text-sm">
+          <table className="w-full min-w-[min(100%,720px)] text-left text-sm">
             <thead className="text-xs text-slate-500">
               <tr className="border-b">
                 <th className="px-4 py-3">Sel</th>
@@ -383,8 +390,8 @@ export function BankingPage() {
                         disabled={Boolean(m.match)}
                       />
                     </td>
-                    <td className="py-3 pr-3 font-mono text-xs text-slate-700">
-                      {String(m.date)}
+                    <td className="max-w-[10rem] break-words py-3 pr-3 text-xs text-slate-700">
+                      {formatMxDateTime(m.date)}
                     </td>
                     <td className="py-3 pr-3 text-slate-700">{m.description}</td>
                     <td className="py-3 pr-3 font-mono text-xs text-slate-700">
@@ -436,7 +443,7 @@ export function BankingPage() {
           {loading ? (
             <TableSkeleton rows={5} cols={6} />
           ) : (
-          <table className="w-full min-w-[720px] text-left text-sm">
+          <table className="w-full min-w-[min(100%,720px)] text-left text-sm">
             <thead className="text-xs text-slate-500">
               <tr className="border-b">
                 <th className="px-4 py-3">Sel</th>
@@ -479,8 +486,8 @@ export function BankingPage() {
                         Sugerir
                       </button>
                     </td>
-                    <td className="py-3 pr-3 font-mono text-xs text-slate-700">
-                      {String(s.date)}
+                    <td className="max-w-[10rem] break-words py-3 pr-3 text-xs text-slate-700">
+                      {formatMxDateTime(s.date)}
                     </td>
                     <td className="py-3 pr-3 text-slate-700">{s.description}</td>
                     <td className="py-3 pr-3 font-mono text-xs text-slate-700">
@@ -514,7 +521,7 @@ export function BankingPage() {
             </button>
           </div>
           <div className="mt-3 overflow-x-auto">
-            <table className="w-full min-w-[820px] text-left text-sm">
+            <table className="w-full min-w-[min(100%,720px)] text-left text-sm">
               <thead className="text-xs text-slate-500">
                 <tr className="border-b">
                   <th className="px-4 py-3">ID</th>
@@ -536,7 +543,9 @@ export function BankingPage() {
                   suggestions.map((m) => (
                     <tr key={m.id} className="border-b last:border-b-0">
                       <td className="px-4 py-3 font-mono text-xs text-slate-700">{m.id}</td>
-                      <td className="py-3 pr-3 font-mono text-xs text-slate-700">{String(m.date)}</td>
+                      <td className="max-w-[10rem] break-words py-3 pr-3 text-xs text-slate-700">
+                        {formatMxDateTime(m.date)}
+                      </td>
                       <td className="py-3 pr-3 text-slate-700">{m.description}</td>
                       <td className="py-3 pr-3 font-mono text-xs text-slate-700">{String(m.amount)}</td>
                       <td className="py-3 pr-3 text-slate-700">{m.type}</td>

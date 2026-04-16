@@ -5,6 +5,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { datetimeLocalToIso, isoToDatetimeLocal } from "../lib/format-date";
 import { apiGet, apiPost } from "../lib/api";
 import { TableSkeleton } from "../components/TableSkeleton";
 import { toast } from "sonner";
@@ -121,40 +122,41 @@ export function PayrollPage() {
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-5">
-          <label className="grid gap-1 md:col-span-2">
+        <div className="mt-4 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <label className="grid min-w-0 max-w-full gap-1 xl:col-span-2">
             <span className="text-xs font-medium text-slate-700">Nombre del colaborador</span>
             <input
-              className="h-10 rounded-xl border px-3 text-sm"
+              className="h-10 min-w-0 max-w-full rounded-xl border px-3 text-sm"
               value={employeeName}
               onChange={(e) => setEmployeeName(e.target.value)}
               placeholder="Ej. María López García"
             />
           </label>
-          <label className="grid gap-1">
+          <label className="grid min-w-0 gap-1">
             <span className="text-xs font-medium text-slate-700">Sueldo mensual bruto</span>
             <input
-              className="h-10 rounded-xl border px-3 text-sm"
+              className="h-10 min-w-0 max-w-full rounded-xl border px-3 text-sm"
               type="number"
               value={grossSalary}
               onChange={(e) => setGrossSalary(Number(e.target.value))}
             />
           </label>
-          <label className="grid gap-1">
+          <label className="grid min-w-0 gap-1">
             <span className="text-xs font-medium text-slate-700">ISR mensual (estimado)</span>
             <input
-              className="h-10 rounded-xl border px-3 text-sm"
+              className="h-10 min-w-0 max-w-full rounded-xl border px-3 text-sm"
               type="number"
               value={isrMonthlyEstimate}
               onChange={(e) => setIsrMonthlyEstimate(Number(e.target.value))}
             />
           </label>
-          <label className="grid gap-1">
-            <span className="text-xs font-medium text-slate-700">Fecha de pago (ISO)</span>
+          <label className="grid min-w-0 gap-1">
+            <span className="text-xs font-medium text-slate-700">Fecha y hora de pago</span>
             <input
-              className="h-10 rounded-xl border px-3 text-sm font-mono"
-              value={payDate}
-              onChange={(e) => setPayDate(e.target.value)}
+              className="h-10 min-w-0 max-w-full rounded-xl border px-3 text-sm"
+              type="datetime-local"
+              value={isoToDatetimeLocal(payDate)}
+              onChange={(e) => setPayDate(datetimeLocalToIso(e.target.value))}
             />
           </label>
         </div>
@@ -195,7 +197,7 @@ export function PayrollPage() {
           <TableSkeleton rows={4} cols={6} />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[840px] text-left text-sm">
+            <table className="w-full min-w-[min(100%,720px)] text-left text-sm">
               <thead className="text-xs text-slate-500">
                 <tr className="border-b">
                   <th className="px-4 py-3">Nombre</th>
@@ -221,8 +223,14 @@ export function PayrollPage() {
                       <td className="py-3 pr-3 font-mono text-xs">${money(row.imssTotal)}</td>
                       <td className="py-3 pr-3 font-mono text-xs">${money(row.subsidyApplied)}</td>
                       <td className="py-3 pr-3 font-mono text-xs">${money(row.netEstimate)}</td>
-                      <td className="py-3 pr-3 font-mono text-xs text-slate-700">
-                        {new Date(row.calculatedAt).toLocaleString("es-MX")}
+                      <td className="break-words py-3 pr-3 text-xs text-slate-700">
+                        {new Date(row.calculatedAt).toLocaleString("es-MX", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </td>
                     </tr>
                   ))
