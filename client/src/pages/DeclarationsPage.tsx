@@ -5,9 +5,12 @@
  */
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { apiGet, apiPost, authHeader } from "../lib/api";
+import { TableSkeleton } from "../components/TableSkeleton";
 
 export function DeclarationsPage() {
+  const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<any[]>([]);
   const [dashboard, setDashboard] = useState<any | null>(null);
   const [clients, setClients] = useState<any[]>([]);
@@ -24,6 +27,7 @@ export function DeclarationsPage() {
 
   async function load() {
     setError(null);
+    setLoading(true);
     try {
       const [dRes, dashRes, cRes] = await Promise.all([
         apiGet<{ data: any[] }>(`/api/declarations`),
@@ -37,7 +41,11 @@ export function DeclarationsPage() {
         setForm((f) => ({ ...f, clientId: cRes.data[0].id }));
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -48,9 +56,12 @@ export function DeclarationsPage() {
         ...form,
         notes: form.notes || undefined,
       });
+      toast.success("Declaración creada.");
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
     }
   }
 
@@ -64,9 +75,12 @@ export function DeclarationsPage() {
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error?.message ?? "No se pudo actualizar");
+      toast.success("Estatus actualizado.");
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
     }
   }
 
@@ -79,9 +93,12 @@ export function DeclarationsPage() {
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error?.message ?? "No se pudo eliminar");
+      toast.success("Declaración eliminada.");
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
     }
   }
 
@@ -103,7 +120,13 @@ export function DeclarationsPage() {
           </button>
         </div>
 
-        {dashboard ? (
+        {loading && !dashboard ? (
+          <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-16 animate-pulse rounded-2xl border bg-slate-100" />
+            ))}
+          </div>
+        ) : dashboard ? (
           <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {(dashboard.totals ?? []).map((t: any) => (
               <div key={t.status} className="rounded-2xl border bg-white p-3">
@@ -200,6 +223,9 @@ export function DeclarationsPage() {
       </div>
 
       <div className="overflow-x-auto rounded-2xl border bg-white shadow-sm">
+        {loading ? (
+          <TableSkeleton rows={5} cols={6} />
+        ) : (
         <table className="w-full min-w-[980px] text-left text-sm">
           <thead className="text-xs text-slate-500">
             <tr className="border-b">
@@ -257,6 +283,7 @@ export function DeclarationsPage() {
             )}
           </tbody>
         </table>
+        )}
       </div>
     </div>
   );

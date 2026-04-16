@@ -5,9 +5,12 @@
  */
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { apiGet, authHeader } from "../lib/api";
+import { TableSkeleton } from "../components/TableSkeleton";
 
 export function AlertsPage() {
+  const [loading, setLoading] = useState(true);
   const [alerts, setAlerts] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [daysAhead, setDaysAhead] = useState(30);
@@ -19,11 +22,16 @@ export function AlertsPage() {
 
   async function load() {
     setError(null);
+    setLoading(true);
     try {
       const res = await apiGet<{ data: any[] }>(`/api/alerts?daysAhead=${daysAhead}`);
       setAlerts(res.data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -42,8 +50,11 @@ export function AlertsPage() {
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank", "noopener,noreferrer");
       setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      toast.success("PDF generado. Se abrió en una nueva pestaña.");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
     }
   }
 
@@ -94,6 +105,9 @@ export function AlertsPage() {
       </div>
 
       <div className="overflow-x-auto rounded-2xl border bg-white shadow-sm">
+        {loading ? (
+          <TableSkeleton rows={5} cols={4} />
+        ) : (
         <table className="w-full min-w-[980px] text-left text-sm">
           <thead className="text-xs text-slate-500">
             <tr className="border-b">
@@ -136,6 +150,7 @@ export function AlertsPage() {
             )}
           </tbody>
         </table>
+        )}
       </div>
     </div>
   );

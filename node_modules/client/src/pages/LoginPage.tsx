@@ -5,6 +5,7 @@
  */
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { apiPost, setToken } from "../lib/api";
 import { Footer } from "../components/Footer";
 
@@ -25,7 +26,9 @@ export function LoginPage({ onAuthed }: { onAuthed: (token: string) => void }) {
       setToken(res.token);
       onAuthed(res.token);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -42,7 +45,9 @@ export function LoginPage({ onAuthed }: { onAuthed: (token: string) => void }) {
       setToken(res.token);
       onAuthed(res.token);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
