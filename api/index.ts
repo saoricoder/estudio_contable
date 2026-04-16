@@ -7,7 +7,11 @@
 import { app } from "../server/src/app";
 
 export default function handler(req: any, res: any) {
-  // Express apps are (req, res) handlers
+  if (process.env.DEBUG_API_TRACE === "1") {
+    console.log(
+      `[vercel-entry] method=${req.method} url=${req.url} originalUrl=${String(req.originalUrl ?? "")}`,
+    );
+  }
   return app(req as any, res as any);
 }
 

@@ -33,6 +33,29 @@ app.use(
 app.use(express.json({ limit: "1mb" }));
 app.use(morgan("dev"));
 
+if (process.env.DEBUG_API_TRACE === "1") {
+  app.use((req, _res, next) => {
+    console.log(
+      `[api-trace] ${req.method} url=${req.url} originalUrl=${String(req.originalUrl ?? "")}`,
+    );
+    next();
+  });
+}
+
+/** Diagnóstico en Vercel: abre GET /api/_debug/routing en el navegador (sin secretos). */
+app.get("/api/_debug/routing", (req, res) => {
+  res.json({
+    ok: true,
+    step: "express-handler-reached",
+    method: req.method,
+    url: req.url,
+    originalUrl: req.originalUrl,
+    path: req.path,
+    vercel: Boolean(process.env.VERCEL),
+    time: new Date().toISOString(),
+  });
+});
+
 app.get("/", (_req, res) => {
   res.json({ ok: true, name: "Estudio Contable Eficiente API" });
 });

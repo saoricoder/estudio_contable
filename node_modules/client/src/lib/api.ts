@@ -22,6 +22,15 @@ export function authHeader(): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+function errMessage(res: Response, json: unknown, path: string) {
+  const msg =
+    typeof json === "object" && json !== null && "error" in json
+      ? (json as { error?: { message?: string } }).error?.message
+      : undefined;
+  if (msg) return msg;
+  return `Request failed (${res.status}) ${path}`;
+}
+
 export async function apiPost<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
@@ -29,7 +38,7 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
     body: JSON.stringify(body),
   });
   const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(json?.error?.message ?? "Request failed");
+  if (!res.ok) throw new Error(errMessage(res, json, path));
   return json as T;
 }
 
@@ -39,7 +48,7 @@ export async function apiGet<T>(path: string): Promise<T> {
     headers: headers(),
   });
   const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(json?.error?.message ?? "Request failed");
+  if (!res.ok) throw new Error(errMessage(res, json, path));
   return json as T;
 }
 
