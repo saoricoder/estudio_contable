@@ -1,7 +1,7 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/index.ts", "use": "@vercel/node" },
+    { "src": "api/**/*.ts", "use": "@vercel/node" },
     {
       "src": "client/package.json",
       "use": "@vercel/static-build",
@@ -10,7 +10,6 @@
   ],
   "routes": [
     { "handle": "filesystem" },
-    { "src": "^/api(?:/(.*))?$", "dest": "/api" },
     { "src": "^(?!/api/).*$", "dest": "/index.html" }
   ]
 }
