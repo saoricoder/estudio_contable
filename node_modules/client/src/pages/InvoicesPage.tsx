@@ -6,8 +6,10 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { apiGet, apiPost, authHeader } from "../lib/api";
+import { ResponsiveStackTable } from "../components/ResponsiveStackTable";
 import { TableSkeleton } from "../components/TableSkeleton";
+import { apiGet, apiPost, authHeader } from "../lib/api";
+import { datetimeLocalToIso, formatMxDateTime, isoToDatetimeLocal } from "../lib/format-date";
 
 function paymentLabel(status: string | undefined) {
   switch (status) {
@@ -18,6 +20,21 @@ function paymentLabel(status: string | undefined) {
     case "PENDING":
     default:
       return "Pendiente";
+  }
+}
+
+function frequencyLabel(f: string) {
+  switch (f) {
+    case "MONTHLY":
+      return "Mensual";
+    case "BIMONTHLY":
+      return "Bimestral";
+    case "QUARTERLY":
+      return "Trimestral";
+    case "YEARLY":
+      return "Anual";
+    default:
+      return f;
   }
 }
 
@@ -121,23 +138,23 @@ export function InvoicesPage() {
   }, []);
 
   return (
-    <div className="grid gap-4">
-      <div className="rounded-2xl border bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-3">
+    <div className="grid max-w-full gap-4">
+      <div className="rounded-2xl border bg-white p-4 shadow-sm sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="text-lg font-semibold text-slate-900">Facturas recurrentes</div>
             <div className="text-sm text-slate-600">Crear y listar recurrentes.</div>
           </div>
-          <button className="h-9 rounded-xl border px-3 text-sm" onClick={load}>
+          <button type="button" className="btn-touch-outline shrink-0" onClick={load}>
             Refrescar
           </button>
         </div>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-6">
-          <label className="grid gap-1 md:col-span-2">
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-6">
+          <label className="grid min-w-0 gap-1 sm:col-span-2 lg:col-span-2">
             <span className="text-xs font-medium text-slate-700">Cliente</span>
             <select
-              className="h-10 rounded-xl border bg-white px-3 text-sm"
+              className="field-touch bg-white"
               value={form.clientId}
               onChange={(e) => setForm({ ...form, clientId: e.target.value })}
             >
@@ -148,27 +165,27 @@ export function InvoicesPage() {
               ))}
             </select>
           </label>
-          <label className="grid gap-1 md:col-span-2">
+          <label className="grid min-w-0 gap-1 sm:col-span-2 lg:col-span-2">
             <span className="text-xs font-medium text-slate-700">Concepto</span>
             <input
-              className="h-10 rounded-xl border px-3 text-sm"
+              className="field-touch"
               value={form.concept}
               onChange={(e) => setForm({ ...form, concept: e.target.value })}
             />
           </label>
-          <label className="grid gap-1">
+          <label className="grid min-w-0 gap-1">
             <span className="text-xs font-medium text-slate-700">Monto</span>
             <input
-              className="h-10 rounded-xl border px-3 text-sm"
+              className="field-touch"
               type="number"
               value={form.amount}
               onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })}
             />
           </label>
-          <label className="grid gap-1">
+          <label className="grid min-w-0 gap-1">
             <span className="text-xs font-medium text-slate-700">Frecuencia</span>
             <select
-              className="h-10 rounded-xl border bg-white px-3 text-sm"
+              className="field-touch bg-white"
               value={form.frequency}
               onChange={(e) => setForm({ ...form, frequency: e.target.value })}
             >
@@ -179,33 +196,41 @@ export function InvoicesPage() {
             </select>
           </label>
 
-          <label className="grid gap-1 md:col-span-2">
-            <span className="text-xs font-medium text-slate-700">Inicio (ISO)</span>
+          <label className="grid min-w-0 gap-1 sm:col-span-2">
+            <span className="text-xs font-medium text-slate-700">Inicio</span>
             <input
-              className="h-10 rounded-xl border px-3 text-sm font-mono"
-              value={form.startDate}
-              onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+              className="field-touch-mono min-w-0"
+              type="datetime-local"
+              value={isoToDatetimeLocal(form.startDate)}
+              onChange={(e) =>
+                setForm({ ...form, startDate: datetimeLocalToIso(e.target.value) })
+              }
             />
           </label>
-          <label className="grid gap-1 md:col-span-2">
-            <span className="text-xs font-medium text-slate-700">Próxima (ISO)</span>
+          <label className="grid min-w-0 gap-1 sm:col-span-2">
+            <span className="text-xs font-medium text-slate-700">Próxima ejecución</span>
             <input
-              className="h-10 rounded-xl border px-3 text-sm font-mono"
-              value={form.nextRunDate}
-              onChange={(e) => setForm({ ...form, nextRunDate: e.target.value })}
+              className="field-touch-mono min-w-0"
+              type="datetime-local"
+              value={isoToDatetimeLocal(form.nextRunDate)}
+              onChange={(e) =>
+                setForm({ ...form, nextRunDate: datetimeLocalToIso(e.target.value) })
+              }
             />
           </label>
-          <label className="flex items-center gap-2 md:col-span-1">
+          <label className="flex min-h-[44px] items-center gap-3 md:min-h-0">
             <input
               type="checkbox"
+              className="size-5 shrink-0 rounded border-slate-300 md:size-4"
               checked={form.active}
               onChange={(e) => setForm({ ...form, active: e.target.checked })}
             />
             <span className="text-sm text-slate-700">Activa</span>
           </label>
-          <div className="md:col-span-1 flex items-end">
+          <div className="flex items-end sm:col-span-2 lg:col-span-1">
             <button
-              className="h-10 w-full rounded-xl bg-ink-950 px-3 text-sm font-medium text-white"
+              type="button"
+              className="btn-touch-primary"
               onClick={create}
               disabled={!form.clientId}
             >
@@ -221,83 +246,145 @@ export function InvoicesPage() {
         ) : null}
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
         {loading ? (
           <TableSkeleton rows={5} cols={9} />
         ) : (
-        <table className="w-full min-w-[1080px] text-left text-sm">
-          <thead className="text-xs text-slate-500">
-            <tr className="border-b">
-              <th className="px-4 py-3">Cliente</th>
-              <th className="py-3 pr-3">Concepto</th>
-              <th className="py-3 pr-3">Monto</th>
-              <th className="py-3 pr-3">Estado pago</th>
-              <th className="py-3 pr-3">Saldo pendiente</th>
-              <th className="py-3 pr-3">Frecuencia</th>
-              <th className="py-3 pr-3">Próxima</th>
-              <th className="py-3 pr-3">Activa</th>
-              <th className="py-3 pr-3">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.length === 0 ? (
-              <tr>
-                <td className="px-4 py-4 text-slate-500" colSpan={9}>
-                  Sin datos.
-                </td>
-              </tr>
-            ) : (
-              items.map((inv) => (
-                <tr key={inv.id} className="border-b last:border-b-0">
-                  <td className="px-4 py-3 font-medium text-slate-900">
+          <ResponsiveStackTable
+            tableMinWidthClass="min-w-[1080px]"
+            rows={items}
+            rowKey={(inv) => inv.id}
+            columns={[
+              {
+                key: "client",
+                label: "Cliente",
+                mobile: (inv) => (
+                  <span className="font-medium">{inv.client?.name ?? inv.clientId}</span>
+                ),
+                desktop: (inv) => (
+                  <span className="font-medium text-slate-900">
                     {inv.client?.name ?? inv.clientId}
-                  </td>
-                  <td className="py-3 pr-3 text-slate-700">{inv.concept}</td>
-                  <td className="py-3 pr-3 font-mono text-xs text-slate-700">
+                  </span>
+                ),
+              },
+              {
+                key: "concept",
+                label: "Concepto",
+                mobile: (inv) => <span>{inv.concept}</span>,
+                desktop: (inv) => <span className="text-slate-700">{inv.concept}</span>,
+              },
+              {
+                key: "amount",
+                label: "Monto",
+                mobile: (inv) => (
+                  <span className="font-mono text-xs">
                     {inv.currency} {String(inv.amount)}
-                  </td>
-                  <td className="py-3 pr-3 text-slate-700">
-                    {paymentLabel(inv.paymentStatus)}
-                  </td>
-                  <td className="py-3 pr-3 font-mono text-xs text-slate-700">
+                  </span>
+                ),
+                desktop: (inv) => (
+                  <span className="font-mono text-xs text-slate-700">
+                    {inv.currency} {String(inv.amount)}
+                  </span>
+                ),
+              },
+              {
+                key: "pay",
+                label: "Estado pago",
+                mobile: (inv) => <span>{paymentLabel(inv.paymentStatus)}</span>,
+                desktop: (inv) => (
+                  <span className="text-slate-700">{paymentLabel(inv.paymentStatus)}</span>
+                ),
+              },
+              {
+                key: "balance",
+                label: "Saldo pendiente",
+                mobile: (inv) => (
+                  <span className="font-mono text-xs">
                     {inv.pendingBalance != null
                       ? Number(inv.pendingBalance).toLocaleString("es-MX", {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })
                       : "—"}
-                  </td>
-                  <td className="py-3 pr-3 text-slate-700">{inv.frequency}</td>
-                  <td className="py-3 pr-3 font-mono text-xs text-slate-700">
-                    {String(inv.nextRunDate)}
-                  </td>
-                  <td className="py-3 pr-3 text-slate-700">
-                    {inv.active ? "Sí" : "No"}
-                  </td>
-                  <td className="py-3 pr-3">
-                    <div className="flex gap-2">
-                      <button
-                        className="rounded-lg border px-2 py-1 text-xs"
-                        onClick={() => toggleActive(inv)}
-                      >
-                        {inv.active ? "Desactivar" : "Activar"}
-                      </button>
-                      <button
-                        className="rounded-lg border px-2 py-1 text-xs"
-                        onClick={() => remove(inv.id)}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+                  </span>
+                ),
+                desktop: (inv) => (
+                  <span className="font-mono text-xs text-slate-700">
+                    {inv.pendingBalance != null
+                      ? Number(inv.pendingBalance).toLocaleString("es-MX", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })
+                      : "—"}
+                  </span>
+                ),
+              },
+              {
+                key: "freq",
+                label: "Frecuencia",
+                mobile: (inv) => <span>{frequencyLabel(inv.frequency)}</span>,
+                desktop: (inv) => (
+                  <span className="text-slate-700">{frequencyLabel(inv.frequency)}</span>
+                ),
+              },
+              {
+                key: "next",
+                label: "Próxima",
+                mobile: (inv) => (
+                  <span className="text-xs">{formatMxDateTime(inv.nextRunDate)}</span>
+                ),
+                desktop: (inv) => (
+                  <span className="font-mono text-xs text-slate-700">
+                    {formatMxDateTime(inv.nextRunDate)}
+                  </span>
+                ),
+              },
+              {
+                key: "active",
+                label: "Activa",
+                mobile: (inv) => <span>{inv.active ? "Sí" : "No"}</span>,
+                desktop: (inv) => <span className="text-slate-700">{inv.active ? "Sí" : "No"}</span>,
+              },
+              {
+                key: "actions",
+                label: "Acciones",
+                mobile: (inv) => (
+                  <div className="flex w-full flex-col gap-2">
+                    <button
+                      type="button"
+                      className="btn-touch-outline"
+                      onClick={() => toggleActive(inv)}
+                    >
+                      {inv.active ? "Desactivar" : "Activar"}
+                    </button>
+                    <button type="button" className="btn-touch-outline" onClick={() => remove(inv.id)}>
+                      Eliminar
+                    </button>
+                  </div>
+                ),
+                desktop: (inv) => (
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      className="inline-flex min-h-10 items-center rounded-lg border px-3 text-sm"
+                      onClick={() => toggleActive(inv)}
+                    >
+                      {inv.active ? "Desactivar" : "Activar"}
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex min-h-10 items-center rounded-lg border px-3 text-sm"
+                      onClick={() => remove(inv.id)}
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                ),
+              },
+            ]}
+          />
         )}
       </div>
     </div>
   );
 }
-

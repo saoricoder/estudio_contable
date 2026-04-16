@@ -196,18 +196,19 @@ export function BankingPage() {
 
   return (
     <div className="grid gap-4">
-      <div className="rounded-2xl border bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-3">
+      <div className="rounded-2xl border bg-white p-4 shadow-sm sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="text-lg font-semibold text-slate-900">Conciliación bancaria</div>
             <div className="text-sm text-slate-600">Alta y match manual 1:1.</div>
           </div>
-          <div className="flex items-center gap-2">
-            <button className="h-9 rounded-xl border px-3 text-sm" onClick={load}>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            <button type="button" className="btn-touch-outline" onClick={load}>
               Cargar
             </button>
             <button
-              className="h-9 rounded-xl bg-ink-950 px-3 text-sm font-medium text-white disabled:opacity-60"
+              type="button"
+              className="btn-touch-primary"
               onClick={() => void matchPair(selectedMovementId, selectedStatementId)}
               disabled={!selectedMovementId || !selectedStatementId}
             >
@@ -225,9 +226,9 @@ export function BankingPage() {
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
           <div className="rounded-2xl border bg-slate-50 p-4">
             <div className="text-sm font-semibold text-slate-900">Nuevo movimiento (Libro)</div>
-            <div className="mt-3 grid min-w-0 gap-2 md:grid-cols-2">
+            <div className="mt-3 grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
               <input
-                className="h-10 min-w-0 max-w-full rounded-xl border px-3 text-sm"
+                className="field-touch-mono min-w-0 max-w-full"
                 type="datetime-local"
                 value={isoToDatetimeLocal(newMovement.date)}
                 onChange={(e) =>
@@ -235,7 +236,7 @@ export function BankingPage() {
                 }
               />
               <select
-                className="h-10 rounded-xl border bg-white px-3 text-sm"
+                className="field-touch bg-white"
                 value={newMovement.type}
                 onChange={(e) => setNewMovement({ ...newMovement, type: e.target.value })}
               >
@@ -243,14 +244,14 @@ export function BankingPage() {
                 <option value="DEBIT">DEBIT</option>
               </select>
               <input
-                className="h-10 rounded-xl border px-3 text-sm md:col-span-2"
+                className="field-touch sm:col-span-2"
                 value={newMovement.description}
                 onChange={(e) =>
                   setNewMovement({ ...newMovement, description: e.target.value })
                 }
               />
               <input
-                className="h-10 rounded-xl border px-3 text-sm"
+                className="field-touch"
                 value={newMovement.reference}
                 onChange={(e) =>
                   setNewMovement({ ...newMovement, reference: e.target.value })
@@ -258,7 +259,7 @@ export function BankingPage() {
                 placeholder="Referencia (opcional)"
               />
               <input
-                className="h-10 rounded-xl border px-3 text-sm"
+                className="field-touch"
                 type="number"
                 value={newMovement.amount}
                 onChange={(e) =>
@@ -266,7 +267,8 @@ export function BankingPage() {
                 }
               />
               <button
-                className="h-10 rounded-xl bg-ink-950 px-3 text-sm font-medium text-white md:col-span-2"
+                type="button"
+                className="btn-touch-primary sm:col-span-2"
                 onClick={createMovement}
               >
                 Crear movimiento
@@ -276,9 +278,9 @@ export function BankingPage() {
 
           <div className="rounded-2xl border bg-slate-50 p-4">
             <div className="text-sm font-semibold text-slate-900">Nueva línea (Estado de cuenta)</div>
-            <div className="mt-3 grid min-w-0 gap-2 md:grid-cols-2">
+            <div className="mt-3 grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
               <input
-                className="h-10 min-w-0 max-w-full rounded-xl border px-3 text-sm"
+                className="field-touch-mono min-w-0 max-w-full"
                 type="datetime-local"
                 value={isoToDatetimeLocal(newStatement.date)}
                 onChange={(e) =>
@@ -286,7 +288,7 @@ export function BankingPage() {
                 }
               />
               <select
-                className="h-10 rounded-xl border bg-white px-3 text-sm"
+                className="field-touch bg-white"
                 value={newStatement.type}
                 onChange={(e) => setNewStatement({ ...newStatement, type: e.target.value })}
               >
@@ -294,14 +296,14 @@ export function BankingPage() {
                 <option value="DEBIT">DEBIT</option>
               </select>
               <input
-                className="h-10 rounded-xl border px-3 text-sm md:col-span-2"
+                className="field-touch sm:col-span-2"
                 value={newStatement.description}
                 onChange={(e) =>
                   setNewStatement({ ...newStatement, description: e.target.value })
                 }
               />
               <input
-                className="h-10 rounded-xl border px-3 text-sm"
+                className="field-touch"
                 value={newStatement.reference}
                 onChange={(e) =>
                   setNewStatement({ ...newStatement, reference: e.target.value })
@@ -309,7 +311,7 @@ export function BankingPage() {
                 placeholder="Referencia (opcional)"
               />
               <input
-                className="h-10 rounded-xl border px-3 text-sm"
+                className="field-touch"
                 type="number"
                 value={newStatement.amount}
                 onChange={(e) =>
@@ -317,7 +319,8 @@ export function BankingPage() {
                 }
               />
               <button
-                className="h-10 rounded-xl bg-ink-950 px-3 text-sm font-medium text-white md:col-span-2"
+                type="button"
+                className="btn-touch-primary sm:col-span-2"
                 onClick={createStatement}
               >
                 Crear línea
@@ -327,10 +330,11 @@ export function BankingPage() {
         </div>
 
         <div className="mt-4 rounded-2xl border bg-slate-50 p-4">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="text-sm font-semibold text-slate-900">Importar estado de cuenta (CSV)</div>
             <button
-              className="h-9 rounded-xl bg-ink-950 px-3 text-sm font-medium text-white disabled:opacity-60"
+              type="button"
+              className="btn-touch-primary shrink-0 sm:max-w-xs"
               onClick={importCsv}
               disabled={!csvText.trim()}
             >
@@ -341,7 +345,7 @@ export function BankingPage() {
             Columnas sugeridas: <code>fecha, descripcion, referencia, monto, tipo</code> (tipo: CREDIT/DEBIT o Cargo/Abono).
           </div>
           <textarea
-            className="mt-3 h-32 w-full rounded-xl border bg-white p-3 font-mono text-xs outline-none"
+            className="mt-3 min-h-[8rem] w-full rounded-xl border border-slate-200 bg-white p-3 font-mono text-xs outline-none focus:border-slate-400"
             value={csvText}
             onChange={(e) => setCsvText(e.target.value)}
             placeholder={`fecha,descripcion,referencia,monto,tipo\n01/04/2026,SPEI a proveedor,SPEI999,-1500.50,DEBIT`}
@@ -353,222 +357,387 @@ export function BankingPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="overflow-x-auto rounded-2xl border bg-white shadow-sm">
+        <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
           <div className="border-b bg-slate-50 px-4 py-2 text-xs font-medium text-slate-600">
             Movimientos (Libro)
           </div>
           {loading ? (
             <TableSkeleton rows={5} cols={6} />
           ) : (
-          <table className="w-full min-w-[min(100%,720px)] text-left text-sm">
-            <thead className="text-xs text-slate-500">
-              <tr className="border-b">
-                <th className="px-4 py-3">Sel</th>
-                <th className="py-3 pr-3">Fecha</th>
-                <th className="py-3 pr-3">Descripción</th>
-                <th className="py-3 pr-3">Monto</th>
-                <th className="py-3 pr-3">Categoría</th>
-                <th className="py-3 pr-3">Match</th>
-              </tr>
-            </thead>
-            <tbody>
-              {movements.length === 0 ? (
-                <tr>
-                  <td className="px-4 py-4 text-slate-500" colSpan={6}>
-                    Sin datos.
-                  </td>
-                </tr>
-              ) : (
-                movements.map((m) => (
-                  <tr key={m.id} className="border-b last:border-b-0">
-                    <td className="px-4 py-3">
-                      <input
-                        type="radio"
-                        name="movement"
-                        checked={selectedMovementId === m.id}
-                        onChange={() => setSelectedMovementId(m.id)}
-                        disabled={Boolean(m.match)}
-                      />
-                    </td>
-                    <td className="max-w-[10rem] break-words py-3 pr-3 text-xs text-slate-700">
-                      {formatMxDateTime(m.date)}
-                    </td>
-                    <td className="py-3 pr-3 text-slate-700">{m.description}</td>
-                    <td className="py-3 pr-3 font-mono text-xs text-slate-700">
-                      {String(m.amount)}
-                    </td>
-                    <td className="py-3 pr-3">
-                      <select
-                        className="h-8 rounded-lg border bg-white px-2 text-xs"
-                        value={m.category ?? ""}
-                        onChange={(e) => setMovementCategory(m.id, e.target.value || null)}
-                        disabled={!m.match}
-                        title={!m.match ? "Concílialo primero para categorizar" : "Categoría"}
-                      >
-                        <option value="">Sin categoría</option>
-                        <option value="Ventas">Ventas</option>
-                        <option value="Servicios">Servicios</option>
-                        <option value="Nómina">Nómina</option>
-                        <option value="Renta">Renta</option>
-                        <option value="Impuestos">Impuestos</option>
-                        <option value="Comisiones bancarias">Comisiones bancarias</option>
-                        <option value="Proveedores">Proveedores</option>
-                        <option value="Otros">Otros</option>
-                      </select>
-                    </td>
-                    <td className="py-3 pr-3">
-                      {m.match ? (
-                        <button
-                          className="rounded-lg border px-2 py-1 text-xs"
-                          onClick={() => unmatchMovement(m.id)}
-                        >
-                          Desmarcar
-                        </button>
-                      ) : (
-                        <span className="text-xs text-slate-500">—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+            <>
+              <div className="md:hidden">
+                {movements.length === 0 ? (
+                  <div className="p-4 text-sm text-slate-500">Sin datos.</div>
+                ) : (
+                  <div className="divide-y divide-slate-100">
+                    {movements.map((m) => (
+                      <div key={m.id} className="space-y-3 p-4 [-webkit-tap-highlight-color:transparent]">
+                        <label className="flex cursor-pointer items-center gap-3 text-sm text-slate-700">
+                          <input
+                            type="radio"
+                            name="movement"
+                            className="size-5 shrink-0 accent-ink-950"
+                            checked={selectedMovementId === m.id}
+                            onChange={() => setSelectedMovementId(m.id)}
+                            disabled={Boolean(m.match)}
+                          />
+                          <span>Seleccionar para conciliar</span>
+                        </label>
+                        <div className="grid gap-1 text-sm">
+                          <div className="text-xs text-slate-500">Fecha</div>
+                          <div className="text-slate-800">{formatMxDateTime(m.date)}</div>
+                          <div className="text-xs text-slate-500">Descripción</div>
+                          <div className="break-words text-slate-800">{m.description}</div>
+                          <div className="text-xs text-slate-500">Monto</div>
+                          <div className="font-mono text-sm">{String(m.amount)}</div>
+                        </div>
+                        <div>
+                          <div className="mb-1 text-xs font-medium text-slate-600">Categoría</div>
+                          <select
+                            className="field-touch bg-white text-sm"
+                            value={m.category ?? ""}
+                            onChange={(e) => setMovementCategory(m.id, e.target.value || null)}
+                            disabled={!m.match}
+                            title={!m.match ? "Concílialo primero para categorizar" : "Categoría"}
+                          >
+                            <option value="">Sin categoría</option>
+                            <option value="Ventas">Ventas</option>
+                            <option value="Servicios">Servicios</option>
+                            <option value="Nómina">Nómina</option>
+                            <option value="Renta">Renta</option>
+                            <option value="Impuestos">Impuestos</option>
+                            <option value="Comisiones bancarias">Comisiones bancarias</option>
+                            <option value="Proveedores">Proveedores</option>
+                            <option value="Otros">Otros</option>
+                          </select>
+                        </div>
+                        {m.match ? (
+                          <button
+                            type="button"
+                            className="btn-touch-outline"
+                            onClick={() => unmatchMovement(m.id)}
+                          >
+                            Desmarcar match
+                          </button>
+                        ) : (
+                          <div className="text-xs text-slate-500">Sin conciliar</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="hidden touch-pan-x overflow-x-auto [-webkit-overflow-scrolling:touch] md:block">
+                <table className="w-full min-w-[min(100%,720px)] text-left text-sm">
+                  <thead className="text-xs text-slate-500">
+                    <tr className="border-b">
+                      <th className="px-4 py-3">Sel</th>
+                      <th className="py-3 pr-3">Fecha</th>
+                      <th className="py-3 pr-3">Descripción</th>
+                      <th className="py-3 pr-3">Monto</th>
+                      <th className="py-3 pr-3">Categoría</th>
+                      <th className="py-3 pr-3">Match</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {movements.length === 0 ? (
+                      <tr>
+                        <td className="px-4 py-4 text-slate-500" colSpan={6}>
+                          Sin datos.
+                        </td>
+                      </tr>
+                    ) : (
+                      movements.map((m) => (
+                        <tr key={m.id} className="border-b last:border-b-0">
+                          <td className="px-4 py-3">
+                            <input
+                              type="radio"
+                              name="movement"
+                              className="size-4 accent-ink-950"
+                              checked={selectedMovementId === m.id}
+                              onChange={() => setSelectedMovementId(m.id)}
+                              disabled={Boolean(m.match)}
+                            />
+                          </td>
+                          <td className="max-w-[10rem] break-words py-3 pr-3 text-xs text-slate-700">
+                            {formatMxDateTime(m.date)}
+                          </td>
+                          <td className="py-3 pr-3 text-slate-700">{m.description}</td>
+                          <td className="py-3 pr-3 font-mono text-xs text-slate-700">
+                            {String(m.amount)}
+                          </td>
+                          <td className="py-3 pr-3">
+                            <select
+                              className="h-10 min-h-[40px] rounded-lg border bg-white px-2 text-xs md:h-8 md:min-h-0"
+                              value={m.category ?? ""}
+                              onChange={(e) => setMovementCategory(m.id, e.target.value || null)}
+                              disabled={!m.match}
+                              title={!m.match ? "Concílialo primero para categorizar" : "Categoría"}
+                            >
+                              <option value="">Sin categoría</option>
+                              <option value="Ventas">Ventas</option>
+                              <option value="Servicios">Servicios</option>
+                              <option value="Nómina">Nómina</option>
+                              <option value="Renta">Renta</option>
+                              <option value="Impuestos">Impuestos</option>
+                              <option value="Comisiones bancarias">Comisiones bancarias</option>
+                              <option value="Proveedores">Proveedores</option>
+                              <option value="Otros">Otros</option>
+                            </select>
+                          </td>
+                          <td className="py-3 pr-3">
+                            {m.match ? (
+                              <button
+                                type="button"
+                                className="rounded-lg border px-3 py-2 text-xs md:px-2 md:py-1"
+                                onClick={() => unmatchMovement(m.id)}
+                              >
+                                Desmarcar
+                              </button>
+                            ) : (
+                              <span className="text-xs text-slate-500">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border bg-white shadow-sm">
+        <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
           <div className="border-b bg-slate-50 px-4 py-2 text-xs font-medium text-slate-600">
             Estado de cuenta
           </div>
           {loading ? (
             <TableSkeleton rows={5} cols={6} />
           ) : (
-          <table className="w-full min-w-[min(100%,720px)] text-left text-sm">
-            <thead className="text-xs text-slate-500">
-              <tr className="border-b">
-                <th className="px-4 py-3">Sel</th>
-                <th className="py-3 pr-3">Sug.</th>
-                <th className="py-3 pr-3">Fecha</th>
-                <th className="py-3 pr-3">Descripción</th>
-                <th className="py-3 pr-3">Monto</th>
-                <th className="py-3 pr-3">Match</th>
-              </tr>
-            </thead>
-            <tbody>
-              {statements.length === 0 ? (
-                <tr>
-                  <td className="px-4 py-4 text-slate-500" colSpan={6}>
-                    Sin datos.
-                  </td>
-                </tr>
-              ) : (
-                statements.map((s) => (
-                  <tr key={s.id} className="border-b last:border-b-0">
-                    <td className="px-4 py-3">
-                      <input
-                        type="radio"
-                        name="statement"
-                        checked={selectedStatementId === s.id}
-                        onChange={() => setSelectedStatementId(s.id)}
-                        disabled={Boolean(s.match)}
-                      />
-                    </td>
-                    <td className="py-3 pr-3">
-                      <button
-                        className="rounded-lg border px-2 py-1 text-xs disabled:opacity-60"
-                        onClick={() => {
-                          setSelectedStatementForSuggest(s.id);
-                          void Promise.resolve().then(suggest);
-                        }}
-                        disabled={Boolean(s.match)}
-                        title="Sugerir match"
-                      >
-                        Sugerir
-                      </button>
-                    </td>
-                    <td className="max-w-[10rem] break-words py-3 pr-3 text-xs text-slate-700">
-                      {formatMxDateTime(s.date)}
-                    </td>
-                    <td className="py-3 pr-3 text-slate-700">{s.description}</td>
-                    <td className="py-3 pr-3 font-mono text-xs text-slate-700">
-                      {String(s.amount)}
-                    </td>
-                    <td className="py-3 pr-3">
-                      {s.match ? (
-                        <span className="text-xs text-emerald-700">Conciliado</span>
-                      ) : (
-                        <span className="text-xs text-slate-500">—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+            <>
+              <div className="md:hidden">
+                {statements.length === 0 ? (
+                  <div className="p-4 text-sm text-slate-500">Sin datos.</div>
+                ) : (
+                  <div className="divide-y divide-slate-100">
+                    {statements.map((s) => (
+                      <div key={s.id} className="space-y-3 p-4 [-webkit-tap-highlight-color:transparent]">
+                        <label className="flex cursor-pointer items-center gap-3 text-sm text-slate-700">
+                          <input
+                            type="radio"
+                            name="statement"
+                            className="size-5 shrink-0 accent-ink-950"
+                            checked={selectedStatementId === s.id}
+                            onChange={() => setSelectedStatementId(s.id)}
+                            disabled={Boolean(s.match)}
+                          />
+                          <span>Seleccionar para conciliar</span>
+                        </label>
+                        <button
+                          type="button"
+                          className="btn-touch-outline"
+                          onClick={() => {
+                            setSelectedStatementForSuggest(s.id);
+                            void Promise.resolve().then(suggest);
+                          }}
+                          disabled={Boolean(s.match)}
+                        >
+                          Sugerir match
+                        </button>
+                        <div className="grid gap-1 text-sm">
+                          <div className="text-xs text-slate-500">Fecha</div>
+                          <div className="text-slate-800">{formatMxDateTime(s.date)}</div>
+                          <div className="text-xs text-slate-500">Descripción</div>
+                          <div className="break-words text-slate-800">{s.description}</div>
+                          <div className="text-xs text-slate-500">Monto</div>
+                          <div className="font-mono text-sm">{String(s.amount)}</div>
+                          <div className="text-xs text-slate-500">Match</div>
+                          <div>
+                            {s.match ? (
+                              <span className="text-sm font-medium text-emerald-700">Conciliado</span>
+                            ) : (
+                              <span className="text-sm text-slate-500">—</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="hidden touch-pan-x overflow-x-auto [-webkit-overflow-scrolling:touch] md:block">
+                <table className="w-full min-w-[min(100%,720px)] text-left text-sm">
+                  <thead className="text-xs text-slate-500">
+                    <tr className="border-b">
+                      <th className="px-4 py-3">Sel</th>
+                      <th className="py-3 pr-3">Sug.</th>
+                      <th className="py-3 pr-3">Fecha</th>
+                      <th className="py-3 pr-3">Descripción</th>
+                      <th className="py-3 pr-3">Monto</th>
+                      <th className="py-3 pr-3">Match</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {statements.length === 0 ? (
+                      <tr>
+                        <td className="px-4 py-4 text-slate-500" colSpan={6}>
+                          Sin datos.
+                        </td>
+                      </tr>
+                    ) : (
+                      statements.map((s) => (
+                        <tr key={s.id} className="border-b last:border-b-0">
+                          <td className="px-4 py-3">
+                            <input
+                              type="radio"
+                              name="statement"
+                              className="size-4 accent-ink-950"
+                              checked={selectedStatementId === s.id}
+                              onChange={() => setSelectedStatementId(s.id)}
+                              disabled={Boolean(s.match)}
+                            />
+                          </td>
+                          <td className="py-3 pr-3">
+                            <button
+                              type="button"
+                              className="rounded-lg border px-3 py-2 text-xs disabled:opacity-60 md:px-2 md:py-1"
+                              onClick={() => {
+                                setSelectedStatementForSuggest(s.id);
+                                void Promise.resolve().then(suggest);
+                              }}
+                              disabled={Boolean(s.match)}
+                              title="Sugerir match"
+                            >
+                              Sugerir
+                            </button>
+                          </td>
+                          <td className="max-w-[10rem] break-words py-3 pr-3 text-xs text-slate-700">
+                            {formatMxDateTime(s.date)}
+                          </td>
+                          <td className="py-3 pr-3 text-slate-700">{s.description}</td>
+                          <td className="py-3 pr-3 font-mono text-xs text-slate-700">
+                            {String(s.amount)}
+                          </td>
+                          <td className="py-3 pr-3">
+                            {s.match ? (
+                              <span className="text-xs text-emerald-700">Conciliado</span>
+                            ) : (
+                              <span className="text-xs text-slate-500">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
       </div>
 
       {suggestions ? (
-        <div className="rounded-2xl border bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
+        <div className="rounded-2xl border bg-white p-4 shadow-sm sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <div className="text-sm font-semibold text-slate-900">Sugerencias de match</div>
               <div className="text-xs text-slate-600">Top 10 por monto/fecha (solo movimientos sin conciliar).</div>
             </div>
-            <button className="h-9 rounded-xl border px-3 text-sm" onClick={() => setSuggestions(null)}>
+            <button type="button" className="btn-touch-outline shrink-0" onClick={() => setSuggestions(null)}>
               Cerrar
             </button>
           </div>
-          <div className="mt-3 overflow-x-auto">
-            <table className="w-full min-w-[min(100%,720px)] text-left text-sm">
-              <thead className="text-xs text-slate-500">
-                <tr className="border-b">
-                  <th className="px-4 py-3">ID</th>
-                  <th className="py-3 pr-3">Fecha</th>
-                  <th className="py-3 pr-3">Descripción</th>
-                  <th className="py-3 pr-3">Monto</th>
-                  <th className="py-3 pr-3">Tipo</th>
-                  <th className="py-3 pr-3">Acción</th>
-                </tr>
-              </thead>
-              <tbody>
-                {suggestions.length === 0 ? (
-                  <tr>
-                    <td className="px-4 py-4 text-slate-500" colSpan={6}>
-                      Sin sugerencias.
-                    </td>
+          <div className="mt-3">
+            <div className="md:hidden">
+              {suggestions.length === 0 ? (
+                <div className="py-4 text-sm text-slate-500">Sin sugerencias.</div>
+              ) : (
+                <div className="divide-y divide-slate-100 rounded-xl border border-slate-100">
+                  {suggestions.map((m) => (
+                    <div key={m.id} className="space-y-3 p-4">
+                      <div className="font-mono text-xs text-slate-600">{m.id}</div>
+                      <div className="grid gap-1 text-sm">
+                        <div className="text-xs text-slate-500">Fecha</div>
+                        <div>{formatMxDateTime(m.date)}</div>
+                        <div className="text-xs text-slate-500">Descripción</div>
+                        <div className="break-words">{m.description}</div>
+                        <div className="text-xs text-slate-500">Monto / Tipo</div>
+                        <div>
+                          <span className="font-mono">{String(m.amount)}</span>{" "}
+                          <span className="text-slate-600">{m.type}</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn-touch-primary"
+                        onClick={() => {
+                          if (!selectedStatementForSuggest) return;
+                          void (async () => {
+                            await matchPair(m.id, selectedStatementForSuggest);
+                            setSuggestions(null);
+                          })();
+                        }}
+                        disabled={!selectedStatementForSuggest}
+                      >
+                        Conciliar
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="hidden touch-pan-x overflow-x-auto [-webkit-overflow-scrolling:touch] md:block">
+              <table className="w-full min-w-[min(100%,720px)] text-left text-sm">
+                <thead className="text-xs text-slate-500">
+                  <tr className="border-b">
+                    <th className="px-4 py-3">ID</th>
+                    <th className="py-3 pr-3">Fecha</th>
+                    <th className="py-3 pr-3">Descripción</th>
+                    <th className="py-3 pr-3">Monto</th>
+                    <th className="py-3 pr-3">Tipo</th>
+                    <th className="py-3 pr-3">Acción</th>
                   </tr>
-                ) : (
-                  suggestions.map((m) => (
-                    <tr key={m.id} className="border-b last:border-b-0">
-                      <td className="px-4 py-3 font-mono text-xs text-slate-700">{m.id}</td>
-                      <td className="max-w-[10rem] break-words py-3 pr-3 text-xs text-slate-700">
-                        {formatMxDateTime(m.date)}
-                      </td>
-                      <td className="py-3 pr-3 text-slate-700">{m.description}</td>
-                      <td className="py-3 pr-3 font-mono text-xs text-slate-700">{String(m.amount)}</td>
-                      <td className="py-3 pr-3 text-slate-700">{m.type}</td>
-                      <td className="py-3 pr-3">
-                        <button
-                          className="rounded-lg border px-2 py-1 text-xs disabled:opacity-60"
-                          onClick={() => {
-                            if (!selectedStatementForSuggest) return;
-                            void (async () => {
-                              await matchPair(m.id, selectedStatementForSuggest);
-                              setSuggestions(null);
-                            })();
-                          }}
-                          disabled={!selectedStatementForSuggest}
-                        >
-                          Conciliar
-                        </button>
+                </thead>
+                <tbody>
+                  {suggestions.length === 0 ? (
+                    <tr>
+                      <td className="px-4 py-4 text-slate-500" colSpan={6}>
+                        Sin sugerencias.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    suggestions.map((m) => (
+                      <tr key={m.id} className="border-b last:border-b-0">
+                        <td className="px-4 py-3 font-mono text-xs text-slate-700">{m.id}</td>
+                        <td className="max-w-[10rem] break-words py-3 pr-3 text-xs text-slate-700">
+                          {formatMxDateTime(m.date)}
+                        </td>
+                        <td className="py-3 pr-3 text-slate-700">{m.description}</td>
+                        <td className="py-3 pr-3 font-mono text-xs text-slate-700">{String(m.amount)}</td>
+                        <td className="py-3 pr-3 text-slate-700">{m.type}</td>
+                        <td className="py-3 pr-3">
+                          <button
+                            type="button"
+                            className="rounded-lg border px-3 py-2 text-xs disabled:opacity-60 md:px-2 md:py-1"
+                            onClick={() => {
+                              if (!selectedStatementForSuggest) return;
+                              void (async () => {
+                                await matchPair(m.id, selectedStatementForSuggest);
+                                setSuggestions(null);
+                              })();
+                            }}
+                            disabled={!selectedStatementForSuggest}
+                          >
+                            Conciliar
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       ) : null}

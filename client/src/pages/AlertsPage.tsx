@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { formatMxDateTime } from "../lib/format-date";
 import { apiGet, authHeader } from "../lib/api";
+import { ResponsiveStackTable } from "../components/ResponsiveStackTable";
 import { TableSkeleton } from "../components/TableSkeleton";
 
 export function AlertsPage() {
@@ -65,36 +66,39 @@ export function AlertsPage() {
   }, []);
 
   return (
-    <div className="grid gap-4">
-      <div className="rounded-2xl border bg-white p-5 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="grid max-w-full gap-4">
+      <div className="rounded-2xl border bg-white p-4 shadow-sm sm:p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <div className="text-lg font-semibold text-slate-900">Alertas</div>
             <div className="text-sm text-slate-600">Semáforo de vencimientos.</div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <input
-              className="h-9 w-[110px] rounded-xl border px-3 text-sm"
-              type="number"
-              value={daysAhead}
-              onChange={(e) => setDaysAhead(Number(e.target.value))}
-              min={1}
-            />
-            <button className="h-9 rounded-xl border px-3 text-sm" onClick={load}>
-              Cargar
-            </button>
-            <input
-              className="h-9 w-[140px] rounded-xl border px-3 text-sm font-mono"
-              value={reportMonth}
-              onChange={(e) => setReportMonth(e.target.value)}
-              placeholder="YYYY-MM"
-            />
-            <button
-              className="h-9 rounded-xl bg-ink-950 px-3 text-sm font-medium text-white"
-              onClick={downloadPdf}
-            >
-              PDF salud financiera
-            </button>
+          <div className="flex w-full min-w-0 flex-col gap-2 md:max-w-3xl md:flex-row md:flex-wrap md:items-stretch md:justify-end xl:max-w-4xl">
+            <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch">
+              <input
+                className="field-touch font-mono sm:max-w-[7.5rem] md:w-28"
+                type="number"
+                value={daysAhead}
+                onChange={(e) => setDaysAhead(Number(e.target.value))}
+                min={1}
+                aria-label="Días hacia adelante"
+              />
+              <button type="button" className="btn-touch-outline sm:min-w-[7rem]" onClick={load}>
+                Cargar
+              </button>
+            </div>
+            <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch sm:flex-1">
+              <input
+                className="field-touch-mono min-w-0 sm:max-w-[11rem] md:flex-1"
+                value={reportMonth}
+                onChange={(e) => setReportMonth(e.target.value)}
+                placeholder="YYYY-MM"
+                aria-label="Mes del reporte"
+              />
+              <button type="button" className="btn-touch-primary whitespace-normal sm:max-w-[14rem]" onClick={downloadPdf}>
+                PDF salud financiera
+              </button>
+            </div>
           </div>
         </div>
 
@@ -105,55 +109,73 @@ export function AlertsPage() {
         ) : null}
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
         {loading ? (
           <TableSkeleton rows={5} cols={4} />
         ) : (
-        <table className="w-full min-w-[min(100%,640px)] text-left text-sm">
-          <thead className="text-xs text-slate-500">
-            <tr className="border-b">
-              <th className="px-4 py-3">Nivel</th>
-              <th className="py-3 pr-3">Título</th>
-              <th className="py-3 pr-3">Vence</th>
-              <th className="py-3 pr-3">Tipo</th>
-            </tr>
-          </thead>
-          <tbody>
-            {alerts.length === 0 ? (
-              <tr>
-                <td className="px-4 py-4 text-slate-500" colSpan={4}>
-                  Sin alertas.
-                </td>
-              </tr>
-            ) : (
-              alerts.map((a) => (
-                <tr key={`${a.kind}-${a.declarationId ?? a.clientId}`} className="border-b last:border-b-0">
-                  <td className="px-4 py-3">
-                    <span
-                      className={
-                        a.level === "RED"
-                          ? "rounded-full bg-rose-50 px-2 py-1 text-xs font-medium text-rose-700"
-                          : a.level === "YELLOW"
-                            ? "rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700"
-                            : "rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700"
-                      }
-                    >
-                      {a.level}
-                    </span>
-                  </td>
-                  <td className="py-3 pr-3 text-slate-700">{a.title}</td>
-                  <td className="max-w-[11rem] whitespace-normal break-words py-3 pr-3 text-xs text-slate-700">
+          <ResponsiveStackTable
+            tableMinWidthClass="min-w-[min(100%,640px)]"
+            rows={alerts}
+            rowKey={(a) => `${a.kind}-${a.declarationId ?? a.clientId}`}
+            columns={[
+              {
+                key: "level",
+                label: "Nivel",
+                mobile: (a) => (
+                  <span
+                    className={
+                      a.level === "RED"
+                        ? "rounded-full bg-rose-50 px-2 py-1 text-xs font-medium text-rose-700"
+                        : a.level === "YELLOW"
+                          ? "rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700"
+                          : "rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700"
+                    }
+                  >
+                    {a.level}
+                  </span>
+                ),
+                desktop: (a) => (
+                  <span
+                    className={
+                      a.level === "RED"
+                        ? "rounded-full bg-rose-50 px-2 py-1 text-xs font-medium text-rose-700"
+                        : a.level === "YELLOW"
+                          ? "rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700"
+                          : "rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700"
+                    }
+                  >
+                    {a.level}
+                  </span>
+                ),
+              },
+              {
+                key: "title",
+                label: "Título",
+                mobile: (a) => <span className="break-words text-left">{a.title}</span>,
+                desktop: (a) => <span className="text-slate-700">{a.title}</span>,
+              },
+              {
+                key: "due",
+                label: "Vence",
+                mobile: (a) => (
+                  <span className="break-words text-xs">{formatMxDateTime(a.dueDate)}</span>
+                ),
+                desktop: (a) => (
+                  <span className="max-w-[11rem] whitespace-normal break-words text-xs text-slate-700">
                     {formatMxDateTime(a.dueDate)}
-                  </td>
-                  <td className="py-3 pr-3 text-slate-700">{a.kind}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+                  </span>
+                ),
+              },
+              {
+                key: "kind",
+                label: "Tipo",
+                mobile: (a) => <span>{a.kind}</span>,
+                desktop: (a) => <span className="text-slate-700">{a.kind}</span>,
+              },
+            ]}
+          />
         )}
       </div>
     </div>
   );
 }
-

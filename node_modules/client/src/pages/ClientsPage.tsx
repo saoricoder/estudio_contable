@@ -6,9 +6,10 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ResponsiveStackTable } from "../components/ResponsiveStackTable";
+import { TableSkeleton } from "../components/TableSkeleton";
 import { apiGet, apiPost, authHeader } from "../lib/api";
 import { isValidRfc } from "../lib/rfc";
-import { TableSkeleton } from "../components/TableSkeleton";
 
 export function ClientsPage() {
   const [data, setData] = useState<any[]>([]);
@@ -86,27 +87,27 @@ export function ClientsPage() {
   }, []);
 
   return (
-    <div className="grid gap-4">
-      <div className="rounded-2xl border bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-3">
+    <div className="grid max-w-full gap-4">
+      <div className="rounded-2xl border bg-white p-4 shadow-sm sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="text-lg font-semibold text-slate-900">Clientes</div>
             <div className="text-sm text-slate-600">CRUD mínimo del MVP.</div>
           </div>
-          <button className="h-9 rounded-xl border px-3 text-sm" onClick={load}>
+          <button type="button" className="btn-touch-outline shrink-0" onClick={load}>
             Cargar
           </button>
         </div>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-5">
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
           <input
-            className="h-10 rounded-xl border px-3 text-sm"
+            className="field-touch"
             placeholder="Nombre"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
           <input
-            className="h-10 rounded-xl border px-3 text-sm font-mono uppercase"
+            className="field-touch-mono uppercase"
             placeholder="RFC (12 o 13 caracteres)"
             value={form.rfc}
             onChange={(e) => setForm({ ...form, rfc: e.target.value.toUpperCase() })}
@@ -114,28 +115,25 @@ export function ClientsPage() {
             autoComplete="off"
           />
           <input
-            className="h-10 rounded-xl border px-3 text-sm"
+            className="field-touch"
             placeholder="Régimen (ej. 601)"
             value={form.regimen}
             onChange={(e) => setForm({ ...form, regimen: e.target.value })}
           />
           <input
-            className="h-10 rounded-xl border px-3 text-sm"
+            className="field-touch"
             placeholder="Email (opcional)"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
           />
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch xl:col-span-1">
             <input
-              className="h-10 flex-1 rounded-xl border px-3 text-sm"
+              className="field-touch sm:flex-1"
               placeholder="Tel (opcional)"
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
             />
-            <button
-              className="h-10 rounded-xl bg-ink-950 px-3 text-sm font-medium text-white"
-              onClick={create}
-            >
+            <button type="button" className="btn-touch-primary sm:max-w-[10rem]" onClick={create}>
               Crear
             </button>
           </div>
@@ -148,52 +146,59 @@ export function ClientsPage() {
         ) : null}
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
         {loading ? (
           <TableSkeleton rows={5} cols={4} />
         ) : (
-        <table className="w-full min-w-[720px] text-left text-sm">
-          <thead className="text-xs text-slate-500">
-            <tr className="border-b">
-              <th className="px-4 py-3">Nombre</th>
-              <th className="py-3 pr-3">RFC</th>
-              <th className="py-3 pr-3">Régimen</th>
-              <th className="py-3 pr-3">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.length === 0 ? (
-              <tr>
-                <td className="px-4 py-4 text-slate-500" colSpan={4}>
-                  Sin datos.
-                </td>
-              </tr>
-            ) : (
-              data.map((c) => (
-                <tr key={c.id} className="border-b last:border-b-0">
-                  <td className="px-4 py-3 font-medium text-slate-900">
-                    {c.name}
-                  </td>
-                  <td className="py-3 pr-3 font-mono text-xs text-slate-700">
-                    {c.rfc}
-                  </td>
-                  <td className="py-3 pr-3 text-slate-700">{c.regimen}</td>
-                  <td className="py-3 pr-3">
-                    <button
-                      className="rounded-lg border px-2 py-1 text-xs"
-                      onClick={() => remove(c.id)}
-                    >
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+          <ResponsiveStackTable
+            tableMinWidthClass="min-w-[720px]"
+            rows={data}
+            rowKey={(c) => c.id}
+            columns={[
+              {
+                key: "name",
+                label: "Nombre",
+                mobile: (c) => <span className="font-medium">{c.name}</span>,
+                desktop: (c) => <span className="font-medium text-slate-900">{c.name}</span>,
+              },
+              {
+                key: "rfc",
+                label: "RFC",
+                mobile: (c) => <span className="font-mono text-xs">{c.rfc}</span>,
+                desktop: (c) => <span className="font-mono text-xs text-slate-700">{c.rfc}</span>,
+              },
+              {
+                key: "regimen",
+                label: "Régimen",
+                mobile: (c) => <span>{c.regimen}</span>,
+                desktop: (c) => <span className="text-slate-700">{c.regimen}</span>,
+              },
+              {
+                key: "actions",
+                label: "Acciones",
+                mobile: (c) => (
+                  <button
+                    type="button"
+                    className="btn-touch-outline border-rose-200 text-rose-800"
+                    onClick={() => remove(c.id)}
+                  >
+                    Eliminar
+                  </button>
+                ),
+                desktop: (c) => (
+                  <button
+                    type="button"
+                    className="inline-flex min-h-10 items-center rounded-lg border px-3 text-sm"
+                    onClick={() => remove(c.id)}
+                  >
+                    Eliminar
+                  </button>
+                ),
+              },
+            ]}
+          />
         )}
       </div>
     </div>
   );
 }
-

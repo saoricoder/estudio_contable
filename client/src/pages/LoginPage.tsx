@@ -69,31 +69,35 @@ export function LoginPage({ onAuthed }: { onAuthed: (token: string) => void }) {
             <label className="grid gap-1">
               <span className="text-xs font-medium text-slate-700">Email</span>
               <input
-                className="h-10 rounded-xl border px-3 text-sm outline-none focus:border-slate-400"
+                className="field-touch"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
               />
             </label>
             <label className="grid gap-1">
               <span className="text-xs font-medium text-slate-700">Password</span>
               <input
-                className="h-10 rounded-xl border px-3 text-sm outline-none focus:border-slate-400"
+                className="field-touch"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 type="password"
+                autoComplete="current-password"
               />
             </label>
 
-            <div className="mt-2 flex gap-2">
+            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
               <button
-                className="h-10 flex-1 rounded-xl bg-ink-950 px-3 text-sm font-medium text-white disabled:opacity-60"
+                type="button"
+                className="btn-touch-primary sm:flex-1"
                 onClick={login}
                 disabled={loading}
               >
                 Login
               </button>
               <button
-                className="h-10 flex-1 rounded-xl border px-3 text-sm font-medium text-slate-900 disabled:opacity-60"
+                type="button"
+                className="btn-touch-outline sm:flex-1"
                 onClick={register}
                 disabled={loading}
               >

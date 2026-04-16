@@ -21,6 +21,7 @@ import {
 import { apiGet } from "../lib/api";
 import { TableSkeleton } from "../components/TableSkeleton";
 import { toast } from "sonner";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 
 type Dashboard = {
   fiscalYear: number;
@@ -34,6 +35,8 @@ const COLORS = ["#0f172a", "#64748b", "#94a3b8", "#cbd5e1", "#e2e8f0"];
 export function AnalyticsPage() {
   const [data, setData] = useState<Dashboard | null>(null);
   const [loading, setLoading] = useState(true);
+  const isDesktop = useMediaQuery("(min-width: 1200px)");
+  const isTablet = useMediaQuery("(min-width: 768px)");
 
   useEffect(() => {
     let cancelled = false;
@@ -71,9 +74,12 @@ export function AnalyticsPage() {
       ]
     : [];
 
+  const barHeight = isDesktop ? 360 : isTablet ? 300 : 260;
+  const pieOuter = isDesktop ? 110 : isTablet ? 95 : 72;
+
   if (loading) {
     return (
-      <div className="rounded-2xl border bg-white p-5 shadow-sm">
+      <div className="max-w-full rounded-2xl border bg-white p-5 shadow-sm">
         <div className="text-lg font-semibold text-slate-900">Analytics</div>
         <TableSkeleton rows={8} cols={4} />
       </div>
@@ -82,51 +88,75 @@ export function AnalyticsPage() {
 
   if (!data) {
     return (
-      <div className="rounded-2xl border bg-white p-6 text-sm text-slate-600 shadow-sm">
+      <div className="max-w-full rounded-2xl border bg-white p-6 text-sm text-slate-600 shadow-sm">
         No hay datos de analytics.
       </div>
     );
   }
 
   return (
-    <div className="grid gap-6">
-      <div>
-        <h1 className="text-lg font-semibold text-slate-900">Analytics · {data.fiscalYear}</h1>
+    <div className="grid max-w-full gap-6">
+      <div className="min-w-0">
+        <h1 className="text-lg font-semibold text-slate-900 xl:text-xl">
+          Analytics · {data.fiscalYear}
+        </h1>
         <p className="mt-1 text-sm text-slate-600">
           Ingresos conciliados (créditos), declaraciones por mes y estado de facturas recurrentes.
         </p>
       </div>
 
-      <div className="rounded-2xl border bg-white p-5 shadow-sm">
-        <div className="text-sm font-semibold text-slate-900">
+      <div className="min-w-0 overflow-hidden rounded-2xl border bg-white p-4 shadow-sm sm:p-5 xl:p-6">
+        <div className="text-sm font-semibold text-slate-900 md:text-base">
           Ingresos mensuales vs. actividad fiscal (declaraciones registradas por mes)
         </div>
-        <div className="mt-4 h-[320px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={combined} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+        <div className="mt-4 w-full min-w-0" style={{ height: barHeight }}>
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={barHeight}>
+            <BarChart
+              data={combined}
+              margin={{ top: 8, right: isTablet ? 12 : 4, left: isTablet ? 4 : 0, bottom: 4 }}
+            >
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-              <YAxis yAxisId="left" tick={{ fontSize: 11 }} />
-              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} />
+              <XAxis dataKey="label" tick={{ fontSize: isTablet ? 11 : 10 }} interval="preserveStartEnd" />
+              <YAxis yAxisId="left" width={isTablet ? 44 : 36} tick={{ fontSize: 10 }} />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                width={isTablet ? 44 : 36}
+                tick={{ fontSize: 10 }}
+              />
               <Tooltip
                 formatter={(value, name) => [
                   Number(value ?? 0),
                   name === "ingresos" ? "Ingresos MXN" : String(name ?? ""),
                 ]}
-                contentStyle={{ fontSize: 12 }}
+                contentStyle={{ fontSize: 12, maxWidth: "min(100vw - 2rem, 280px)" }}
               />
-              <Legend />
-              <Bar yAxisId="left" dataKey="ingresos" name="Ingresos (MXN)" fill="#0f172a" radius={[4, 4, 0, 0]} />
-              <Bar yAxisId="right" dataKey="declaraciones" name="# Declaraciones" fill="#94a3b8" radius={[4, 4, 0, 0]} />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Bar
+                yAxisId="left"
+                dataKey="ingresos"
+                name="Ingresos (MXN)"
+                fill="#0f172a"
+                radius={[4, 4, 0, 0]}
+              />
+              <Bar
+                yAxisId="right"
+                dataKey="declaraciones"
+                name="# Declaraciones"
+                fill="#94a3b8"
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      <div className="rounded-2xl border bg-white p-5 shadow-sm">
-        <div className="text-sm font-semibold text-slate-900">Facturas recurrentes · Pagadas vs. pendientes</div>
-        <div className="mt-4 h-[280px] w-full max-w-md">
-          <ResponsiveContainer width="100%" height="100%">
+      <div className="min-w-0 overflow-hidden rounded-2xl border bg-white p-4 shadow-sm sm:p-5 xl:p-6">
+        <div className="text-sm font-semibold text-slate-900 md:text-base">
+          Facturas recurrentes · Pagadas vs. pendientes
+        </div>
+        <div className="mx-auto mt-4 w-full max-w-full min-w-0 md:max-w-md xl:max-w-lg" style={{ height: isTablet ? 300 : 240 }}>
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <PieChart>
               <Pie
                 data={pieData}
@@ -134,15 +164,17 @@ export function AnalyticsPage() {
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                outerRadius={100}
-                label
+                outerRadius={pieOuter}
+                label={({ name, percent }) =>
+                  `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+                }
               >
                 {pieData.map((_, i) => (
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip formatter={(v) => [Number(v ?? 0), "Cantidad"]} />
-              <Legend />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
             </PieChart>
           </ResponsiveContainer>
         </div>

@@ -15,7 +15,7 @@ export function Footer() {
           target="_blank"
           rel="noreferrer"
         >
-          saori coder
+          saoricoder
         </a>
         .
       </div>
