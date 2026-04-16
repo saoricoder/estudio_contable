@@ -157,5 +157,5 @@ La app ahora usa rutas (React Router):
 
 ## Créditos
 
-- **Desarrolladora:** saori coder - [Instagram](https://instagram.com/saoricoder)
+- **Desarrolladora:** Saori Coder - [Instagram](https://instagram.com/saoricoder)
 
