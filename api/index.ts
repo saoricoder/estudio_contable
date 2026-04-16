@@ -3,13 +3,17 @@
  * Contacto: https://instagram.com/saoricoder
  * Proyecto: Estudio Contable Eficiente - Contadores Unidos MX
  *
- * Vercel (Node / @vercel/node): exportar la app Express como default.
- * En `vercel.json` se reescribe `/api/(.*)` → `/api` para que `/api/auth/*`, `/api/health`, etc.
- * lleguen al mismo handler.
+ * Vercel @vercel/node: exportar un handler (req, res). Algunas versiones no enlazan bien
+ * `export default app` con Express.Application.
+ * El rewrite `/api/*` → `/api` mantiene la ruta original en la petición hacia Express.
  */
 
-import type { Application } from "express";
+import type { IncomingMessage, ServerResponse } from "http";
 import { app } from "../server/src/app";
 
-const expressApp = app as Application;
-export default expressApp;
+export default function handler(req: IncomingMessage, res: ServerResponse) {
+  if (process.env.DEBUG_API_TRACE === "1") {
+    console.log(`[api] ${req.method} ${req.url}`);
+  }
+  return app(req as any, res as any);
+}
