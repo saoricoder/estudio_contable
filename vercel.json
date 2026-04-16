@@ -5,11 +5,11 @@
     {
       "src": "client/package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "client/dist" }
+      "config": { "distDir": "dist" }
     }
   ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.ts" },
-    { "source": "/(.*)", "destination": "/client/dist/index.html" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
