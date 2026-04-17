@@ -26,6 +26,27 @@ const alerts_routes_1 = require("./http/routes/alerts.routes");
 const reports_routes_1 = require("./http/routes/reports.routes");
 const analytics_routes_1 = require("./http/routes/analytics.routes");
 exports.app = (0, express_1.default)();
+/** En Vercel, el rewrite `/api/*` → `/api` a veces deja `req.url` sin prefijo `/api`; Express debe ver `/api/...`. */
+exports.app.use((req, _res, next) => {
+    if (!process.env.VERCEL) {
+        next();
+        return;
+    }
+    const cur = req.url ?? "/";
+    if (cur.startsWith("/api")) {
+        next();
+        return;
+    }
+    const h = req.headers;
+    const fromHeader = [h["x-invoke-path"], h["x-url"]].find((v) => typeof v === "string");
+    if (fromHeader?.startsWith("/api")) {
+        const qIdx = cur.indexOf("?");
+        const query = qIdx >= 0 ? cur.slice(qIdx) : "";
+        const pathOnly = fromHeader.split("?")[0] ?? fromHeader;
+        req.url = pathOnly + query;
+    }
+    next();
+});
 exports.app.use((0, helmet_1.default)());
 exports.app.use((0, cors_1.default)({
     origin: env_1.env.CLIENT_ORIGIN,
@@ -33,6 +54,25 @@ exports.app.use((0, cors_1.default)({
 }));
 exports.app.use(express_1.default.json({ limit: "1mb" }));
 exports.app.use((0, morgan_1.default)("dev"));
+if (process.env.DEBUG_API_TRACE === "1") {
+    exports.app.use((req, _res, next) => {
+        console.log(`[api-trace] ${req.method} url=${req.url} originalUrl=${String(req.originalUrl ?? "")}`);
+        next();
+    });
+}
+/** Diagnóstico en Vercel: abre GET /api/_debug/routing en el navegador (sin secretos). */
+exports.app.get("/api/_debug/routing", (req, res) => {
+    res.json({
+        ok: true,
+        step: "express-handler-reached",
+        method: req.method,
+        url: req.url,
+        originalUrl: req.originalUrl,
+        path: req.path,
+        vercel: Boolean(process.env.VERCEL),
+        time: new Date().toISOString(),
+    });
+});
 exports.app.get("/", (_req, res) => {
     res.json({ ok: true, name: "Estudio Contable Eficiente API" });
 });

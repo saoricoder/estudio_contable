@@ -206,7 +206,7 @@ async function main() {
     const movement = await prisma.bankMovement.create({
       data: {
         date: baseDate,
-        description: `Pago recibido: ${inv.concept.replace(/\\[DEMO_PAGO\\]\\s*/, "")}`,
+        description: `Pago recibido: ${inv.concept.replace(/^\[DEMO_PAGO\]\s*/, "")}`,
         reference: `INV-${String(i + 1).padStart(3, "0")}`,
         amount: amount as any,
         type: "CREDIT",
@@ -230,6 +230,52 @@ async function main() {
       },
     });
 
+    const match = await prisma.bankReconciliationMatch.create({
+      data: {
+        movementId: movement.id,
+        statementLineId: statement.id,
+        createdAt: baseDate,
+      },
+    });
+    await prisma.recurringInvoice.update({
+      where: { id: inv.id },
+      data: { paymentStatus: "PAID", pendingBalance: 0 },
+    });
+    await prisma.bankReconciliationMatch.update({
+      where: { id: match.id },
+      data: { markedRecurringInvoiceId: inv.id },
+    });
+  }
+
+  // 4b) Ingresos conciliados en varios meses de 2026 (Analytics: barras con datos)
+  for (let monthIdx = 0; monthIdx < 6; monthIdx++) {
+    const baseDate = new Date(Date.UTC(2026, monthIdx, 10, 12, 0, 0));
+    const amount = 8200 + monthIdx * 500;
+    const movement = await prisma.bankMovement.create({
+      data: {
+        date: baseDate,
+        description: `Cobro honorarios (seed · mes ${String(monthIdx + 1).padStart(2, "0")}/2026)`,
+        reference: `MULTI-${monthIdx + 1}`,
+        amount: amount as any,
+        type: "CREDIT",
+        source: "BOOK",
+        category: "Servicios",
+        createdAt: baseDate,
+        updatedAt: baseDate,
+      },
+    });
+    const statement = await prisma.bankStatementLine.create({
+      data: {
+        date: baseDate,
+        description: `DEP MULTI-MES ${monthIdx + 1}`,
+        reference: `BAN-M${monthIdx + 1}`,
+        amount: amount as any,
+        type: "CREDIT",
+        source: "BANK",
+        createdAt: baseDate,
+        updatedAt: baseDate,
+      },
+    });
     await prisma.bankReconciliationMatch.create({
       data: {
         movementId: movement.id,

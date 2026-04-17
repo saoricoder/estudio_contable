@@ -13,6 +13,7 @@ import { TableSkeleton } from "../components/TableSkeleton";
 
 export function AlertsPage() {
   const [loading, setLoading] = useState(true);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [alerts, setAlerts] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [daysAhead, setDaysAhead] = useState(30);
@@ -39,16 +40,29 @@ export function AlertsPage() {
 
   async function downloadPdf() {
     setError(null);
+    if (!/^\d{4}-\d{2}$/.test(reportMonth.trim())) {
+      const msg = "Usa el mes en formato YYYY-MM (ej. 2026-04).";
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
+    setPdfLoading(true);
     try {
       const res = await fetch(
-        `/api/reports/financial-health.pdf?month=${encodeURIComponent(reportMonth)}`,
+        `/api/reports/financial-health.pdf?month=${encodeURIComponent(reportMonth.trim())}`,
         { method: "GET", headers: authHeader() },
       );
+      const contentType = res.headers.get("content-type") ?? "";
       if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
+        const json = contentType.includes("application/json")
+          ? await res.json().catch(() => ({}))
+          : {};
         throw new Error(json?.error?.message ?? "No se pudo generar el PDF");
       }
       const blob = await res.blob();
+      if (blob.size === 0) {
+        throw new Error("El PDF llegó vacío. Revisa datos de conciliación del mes.");
+      }
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank", "noopener,noreferrer");
       setTimeout(() => URL.revokeObjectURL(url), 30_000);
@@ -57,6 +71,8 @@ export function AlertsPage() {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
       toast.error(msg);
+    } finally {
+      setPdfLoading(false);
     }
   }
 
@@ -71,7 +87,9 @@ export function AlertsPage() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <div className="text-lg font-semibold text-slate-900">Alertas</div>
-            <div className="text-sm text-slate-600">Semáforo de vencimientos.</div>
+            <div className="text-sm text-slate-600">
+              Semáforo de vencimientos. El PDF usa el mes indicado (por defecto, mes calendario actual).
+            </div>
           </div>
           <div className="flex w-full min-w-0 flex-col gap-2 md:max-w-3xl md:flex-row md:flex-wrap md:items-stretch md:justify-end xl:max-w-4xl">
             <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch">
@@ -95,8 +113,13 @@ export function AlertsPage() {
                 placeholder="YYYY-MM"
                 aria-label="Mes del reporte"
               />
-              <button type="button" className="btn-touch-primary whitespace-normal sm:max-w-[14rem]" onClick={downloadPdf}>
-                PDF salud financiera
+              <button
+                type="button"
+                className="btn-touch-primary whitespace-normal sm:max-w-[14rem] disabled:opacity-60"
+                onClick={() => void downloadPdf()}
+                disabled={pdfLoading}
+              >
+                {pdfLoading ? "Generando PDF…" : "PDF salud financiera"}
               </button>
             </div>
           </div>

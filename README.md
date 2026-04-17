@@ -160,6 +160,10 @@ npm run prisma:generate
 npm run prisma:migrate
 ```
 
+En producción (p. ej. Vercel + Neon): `npm run prisma:migrate:deploy` desde la raíz del monorepo o el comando equivalente en tu pipeline.
+
+La migración **`20260417160000_match_marked_invoice`** añade `markedRecurringInvoiceId` en `BankReconciliationMatch` para recordar qué factura recurrente pasó a **PAID** al conciliar un abono; al **desconciliar**, el sistema restaura **PENDING** y el saldo pendiente.
+
 ## Endpoints HTTP (`/api`)
 
 Base URL local: `http://localhost:4000`. En Vercel, la misma ruta bajo el dominio del proyecto.

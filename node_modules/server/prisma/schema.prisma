@@ -65,6 +65,9 @@ model RecurringInvoice {
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
 
+  /// Conciliación que marcó esta factura como PAGADA (si aplica).
+  markedPaidByMatch BankReconciliationMatch? @relation("RecurringInvoiceMarkedByMatch")
+
   @@index([clientId])
   @@index([active, nextRunDate])
   @@index([paymentStatus])
@@ -135,10 +138,13 @@ model BankReconciliationMatch {
   id              String            @id @default(uuid())
   movementId      String            @unique
   statementLineId String            @unique
+  /// Si la conciliación marcó una factura recurrente como PAGADA, se guarda para revertir al desconciliar.
+  markedRecurringInvoiceId String?  @unique
   createdAt       DateTime          @default(now())
 
   movement      BankMovement      @relation(fields: [movementId], references: [id], onDelete: Cascade)
   statementLine BankStatementLine @relation(fields: [statementLineId], references: [id], onDelete: Cascade)
+  markedRecurringInvoice RecurringInvoice? @relation("RecurringInvoiceMarkedByMatch", fields: [markedRecurringInvoiceId], references: [id], onDelete: SetNull)
 }
 
 enum DeclarationType {

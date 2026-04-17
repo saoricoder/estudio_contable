@@ -160,25 +160,51 @@ class BankingService {
                     }
                 }
             }
+            if (markedInvoiceId) {
+                await tx.bankReconciliationMatch.update({
+                    where: { id: row.id },
+                    data: { markedRecurringInvoiceId: markedInvoiceId },
+                });
+            }
             return {
-                match: row,
+                match: await tx.bankReconciliationMatch.findUniqueOrThrow({
+                    where: { id: row.id },
+                    include: { movement: true, statementLine: true },
+                }),
                 invoiceMarkedPaid: markedInvoiceId !== null,
                 markedInvoiceId,
             };
         });
     }
     async unmatchByMovement(movementId) {
-        const match = await prisma_1.prisma.bankReconciliationMatch.findUnique({
-            where: { movementId },
-            select: { id: true },
+        return prisma_1.prisma.$transaction(async (tx) => {
+            const match = await tx.bankReconciliationMatch.findUnique({
+                where: { movementId },
+                select: { id: true, markedRecurringInvoiceId: true },
+            });
+            if (!match) {
+                const err = new Error("Match not found for movement");
+                err.status = 404;
+                throw err;
+            }
+            if (match.markedRecurringInvoiceId) {
+                const inv = await tx.recurringInvoice.findUnique({
+                    where: { id: match.markedRecurringInvoiceId },
+                    select: { id: true, amount: true, paymentStatus: true },
+                });
+                if (inv?.paymentStatus === "PAID") {
+                    await tx.recurringInvoice.update({
+                        where: { id: inv.id },
+                        data: {
+                            paymentStatus: "PENDING",
+                            pendingBalance: inv.amount,
+                        },
+                    });
+                }
+            }
+            await tx.bankReconciliationMatch.delete({ where: { id: match.id } });
+            return { ok: true };
         });
-        if (!match) {
-            const err = new Error("Match not found for movement");
-            err.status = 404;
-            throw err;
-        }
-        await prisma_1.prisma.bankReconciliationMatch.delete({ where: { id: match.id } });
-        return { ok: true };
     }
     async setMovementCategory(params) {
         const existing = await prisma_1.prisma.bankMovement.findUnique({

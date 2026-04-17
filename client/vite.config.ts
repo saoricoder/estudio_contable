@@ -8,8 +8,10 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      injectRegister: "auto",
       includeAssets: ["favicon.svg", "icons.svg", "pwa-192.png", "pwa-512.png"],
       manifest: {
+        id: "/",
         name: "Estudio Contable",
         short_name: "Estudio Contable",
         description:
