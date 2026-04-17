@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ResponsiveStackTable } from "../components/ResponsiveStackTable";
 import { TableSkeleton } from "../components/TableSkeleton";
+import { buildClientsCsv, downloadUtf8Csv } from "../lib/export-csv";
 import { apiGet, apiPost, authHeader } from "../lib/api";
 import { isValidRfc } from "../lib/rfc";
 
@@ -86,17 +87,37 @@ export function ClientsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function exportCsv() {
+    if (data.length === 0) {
+      toast.error("No hay clientes para exportar. Pulsa Cargar o crea uno primero.");
+      return;
+    }
+    const day = new Date().toISOString().slice(0, 10);
+    downloadUtf8Csv(`clientes-${day}.csv`, buildClientsCsv(data));
+    toast.success("CSV descargado (UTF-8, listo para Excel).");
+  }
+
   return (
     <div className="grid max-w-full gap-4">
       <div className="rounded-2xl border bg-white p-4 shadow-sm sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="text-lg font-semibold text-slate-900">Clientes</div>
-            <div className="text-sm text-slate-600">CRUD mínimo del MVP.</div>
+            <div className="text-sm text-slate-600">CRUD mínimo del MVP y exportación a CSV.</div>
           </div>
-          <button type="button" className="btn-touch-outline shrink-0" onClick={load}>
-            Cargar
-          </button>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            <button type="button" className="btn-touch-outline shrink-0" onClick={load}>
+              Cargar
+            </button>
+            <button
+              type="button"
+              className="btn-touch-outline shrink-0"
+              onClick={exportCsv}
+              disabled={loading || data.length === 0}
+            >
+              Exportar CSV
+            </button>
+          </div>
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
