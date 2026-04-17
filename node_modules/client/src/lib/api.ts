@@ -6,20 +6,42 @@
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 
+export const JWT_STORAGE_KEY = "jwt";
+
 let token: string | null = null;
 
 export function setToken(next: string | null) {
   token = next;
 }
 
+/** Token en memoria o, si aún no se sincronizó el efecto de React, el de localStorage (evita 401 en la primera carga). */
+function bearerToken(): string | null {
+  if (token) return token;
+  if (typeof window !== "undefined") {
+    try {
+      return localStorage.getItem(JWT_STORAGE_KEY);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
 function headers() {
   const h: Record<string, string> = { "Content-Type": "application/json" };
-  if (token) h.Authorization = `Bearer ${token}`;
+  const t = bearerToken();
+  if (t) h.Authorization = `Bearer ${t}`;
   return h;
 }
 
 export function authHeader(): Record<string, string> {
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  const t = bearerToken();
+  return t ? { Authorization: `Bearer ${t}` } : {};
+}
+
+/** Prefijo absoluto para fetch manual (DELETE/PATCH/PDF) coherente con VITE_API_BASE. */
+export function apiUrl(path: string): string {
+  return `${API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
 function errMessage(res: Response, json: unknown, path: string) {

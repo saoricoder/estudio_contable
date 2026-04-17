@@ -6,7 +6,7 @@
 
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { setToken } from "./lib/api";
+import { JWT_STORAGE_KEY, setToken } from "./lib/api";
 import { AppShell } from "./layout/AppShell";
 import { LoginPage } from "./pages/LoginPage";
 import { ClientsPage } from "./pages/ClientsPage";
@@ -18,12 +18,20 @@ import { AlertsPage } from "./pages/AlertsPage";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
 
 export default function Router() {
-  const [jwt, setJwt] = useState<string | null>(() => localStorage.getItem("jwt"));
+  const [jwt, setJwt] = useState<string | null>(() => {
+    try {
+      const t = localStorage.getItem(JWT_STORAGE_KEY);
+      if (t) setToken(t);
+      return t;
+    } catch {
+      return null;
+    }
+  });
 
   useEffect(() => {
     setToken(jwt);
-    if (jwt) localStorage.setItem("jwt", jwt);
-    else localStorage.removeItem("jwt");
+    if (jwt) localStorage.setItem(JWT_STORAGE_KEY, jwt);
+    else localStorage.removeItem(JWT_STORAGE_KEY);
   }, [jwt]);
 
   if (!jwt) {

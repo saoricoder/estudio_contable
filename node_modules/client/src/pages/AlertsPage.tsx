@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { FileBarChart2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatMxDateTime } from "../lib/format-date";
-import { apiGet, authHeader } from "../lib/api";
+import { apiGet, apiUrl, authHeader } from "../lib/api";
 import { ResponsiveStackTable } from "../components/ResponsiveStackTable";
 import { TableSkeleton } from "../components/TableSkeleton";
 
@@ -50,7 +50,7 @@ export function AlertsPage() {
     setPdfLoading(true);
     try {
       const res = await fetch(
-        `/api/reports/financial-health.pdf?month=${encodeURIComponent(reportMonth.trim())}`,
+        apiUrl(`/api/reports/financial-health.pdf?month=${encodeURIComponent(reportMonth.trim())}`),
         { method: "GET", headers: authHeader() },
       );
       const contentType = res.headers.get("content-type") ?? "";

@@ -10,7 +10,7 @@ import { FileDown } from "lucide-react";
 import { ResponsiveStackTable } from "../components/ResponsiveStackTable";
 import { TableSkeleton } from "../components/TableSkeleton";
 import { buildRecurringInvoicesCsv, downloadUtf8Csv } from "../lib/export-csv";
-import { apiGet, apiPost, authHeader } from "../lib/api";
+import { apiGet, apiPost, apiUrl, authHeader } from "../lib/api";
 import { datetimeLocalToIso, formatMxDateTime, isoToDatetimeLocal } from "../lib/format-date";
 
 function paymentLabel(status: string | undefined) {
@@ -100,7 +100,7 @@ export function InvoicesPage() {
   async function toggleActive(inv: any) {
     setError(null);
     try {
-      const res = await fetch(`/api/invoices/recurring/${inv.id}`, {
+      const res = await fetch(apiUrl(`/api/invoices/recurring/${inv.id}`), {
         method: "PATCH",
         headers: { "Content-Type": "application/json", ...authHeader() },
         body: JSON.stringify({ active: !inv.active }),
@@ -119,7 +119,7 @@ export function InvoicesPage() {
   async function remove(id: string) {
     setError(null);
     try {
-      const res = await fetch(`/api/invoices/recurring/${id}`, {
+      const res = await fetch(apiUrl(`/api/invoices/recurring/${id}`), {
         method: "DELETE",
         headers: authHeader(),
       });

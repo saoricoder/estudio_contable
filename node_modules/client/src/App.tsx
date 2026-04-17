@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { ComponentType } from "react";
-import { apiGet, apiPost, authHeader, setToken } from "./lib/api";
+import { apiGet, apiPost, apiUrl, authHeader, setToken } from "./lib/api";
 
 function App() {
   const [jwt, setJwt] = useState<string | null>(null);
@@ -149,7 +149,7 @@ function App() {
   async function setMovementCategory(movementId: string, category: string | null) {
     setBankingError(null);
     try {
-      const res = await fetch(`/api/banking/movements/${movementId}/category`, {
+      const res = await fetch(apiUrl(`/api/banking/movements/${movementId}/category`), {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -184,7 +184,7 @@ function App() {
   async function unmatchMovement(movementId: string) {
     setBankingError(null);
     try {
-      const res = await fetch(`/api/banking/match/movement/${movementId}`, {
+      const res = await fetch(apiUrl(`/api/banking/match/movement/${movementId}`), {
         method: "DELETE",
         headers: authHeader(),
       });
@@ -213,7 +213,7 @@ function App() {
   async function downloadFinancialHealthPdf() {
     setDeclError(null);
     try {
-      const res = await fetch(`/api/reports/financial-health.pdf?month=${encodeURIComponent(reportMonth)}`, {
+      const res = await fetch(apiUrl(`/api/reports/financial-health.pdf?month=${encodeURIComponent(reportMonth)}`), {
         method: "GET",
         headers: authHeader(),
       });
@@ -255,7 +255,7 @@ function App() {
       <main className="mx-auto max-w-6xl px-4 py-8">
         <div className="rounded-2xl border bg-white p-5 shadow-sm">
           <div className="flex items-start justify-between gap-4">
-            <div>
+        <div>
               <div className="flex items-center gap-2 font-semibold text-slate-900">
                 <Lock className="size-4" aria-hidden={true} />
                 Acceso (JWT)
@@ -416,14 +416,14 @@ function App() {
         <section className="mt-6 rounded-2xl border bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <div className="font-semibold text-slate-900">Nómina quincenal (MVP)</div>
-            <button
+        <button
               className="h-9 rounded-xl bg-ink-950 px-3 text-sm font-medium text-white disabled:opacity-60"
               onClick={calculatePayroll}
               disabled={!isAuthed}
               title={!isAuthed ? "Primero inicia sesión" : "Calcular"}
             >
               Calcular
-            </button>
+        </button>
           </div>
           <div className="mt-3 grid gap-3 sm:grid-cols-3">
             <label className="grid gap-1">
@@ -467,7 +467,7 @@ function App() {
               Calcula para ver desglose (IMSS aproximado + subsidio MVP).
             </div>
           )}
-        </section>
+      </section>
 
         <section className="mt-6 rounded-2xl border bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between gap-3">
@@ -503,7 +503,7 @@ function App() {
             <div className="overflow-x-auto rounded-2xl border">
               <div className="border-b bg-slate-50 px-4 py-2 text-xs font-medium text-slate-600">
                 Movimientos (Libro)
-              </div>
+        </div>
               <table className="w-full min-w-[520px] text-left text-sm">
                 <thead className="text-xs text-slate-500">
                   <tr className="border-b">
@@ -779,8 +779,8 @@ function App() {
                 </tbody>
               </table>
             </div>
-          </div>
-        </section>
+        </div>
+      </section>
 
         <section className="mt-6 rounded-2xl border bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between gap-3">
