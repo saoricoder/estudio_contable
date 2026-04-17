@@ -7,7 +7,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { datetimeLocalToIso, formatMxDateTime, isoToDatetimeLocal } from "../lib/format-date";
-import { apiGet, apiPost, authHeader } from "../lib/api";
+import { apiGet, apiPost, apiUrl, authHeader } from "../lib/api";
 import { TableSkeleton } from "../components/TableSkeleton";
 
 export function DeclarationsPage() {
@@ -69,7 +69,7 @@ export function DeclarationsPage() {
   async function setStatus(id: string, status: string) {
     setError(null);
     try {
-      const res = await fetch(`/api/declarations/${id}`, {
+      const res = await fetch(apiUrl(`/api/declarations/${id}`), {
         method: "PATCH",
         headers: { "Content-Type": "application/json", ...authHeader() },
         body: JSON.stringify({ status }),
@@ -88,7 +88,7 @@ export function DeclarationsPage() {
   async function remove(id: string) {
     setError(null);
     try {
-      const res = await fetch(`/api/declarations/${id}`, {
+      const res = await fetch(apiUrl(`/api/declarations/${id}`), {
         method: "DELETE",
         headers: authHeader(),
       });

@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { ResponsiveStackTable } from "../components/ResponsiveStackTable";
 import { TableSkeleton } from "../components/TableSkeleton";
 import { buildClientsCsv, downloadUtf8Csv } from "../lib/export-csv";
-import { apiGet, apiPost, authHeader } from "../lib/api";
+import { apiGet, apiPost, apiUrl, authHeader } from "../lib/api";
 import { isValidRfc } from "../lib/rfc";
 
 export function ClientsPage() {
@@ -71,7 +71,7 @@ export function ClientsPage() {
   async function remove(id: string) {
     setError(null);
     try {
-      const res = await fetch(`/api/clients/${id}`, { method: "DELETE", headers: authHeader() });
+      const res = await fetch(apiUrl(`/api/clients/${id}`), { method: "DELETE", headers: authHeader() });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error?.message ?? "No se pudo eliminar");
       toast.success("Cliente eliminado.");

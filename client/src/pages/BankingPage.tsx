@@ -7,7 +7,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { datetimeLocalToIso, formatMxDateTime, isoToDatetimeLocal } from "../lib/format-date";
-import { apiGet, apiPost, authHeader } from "../lib/api";
+import { apiGet, apiPost, apiUrl, authHeader } from "../lib/api";
 import { TableSkeleton } from "../components/TableSkeleton";
 
 export function BankingPage() {
@@ -118,7 +118,7 @@ export function BankingPage() {
   async function unmatchMovement(movementId: string) {
     setError(null);
     try {
-      const res = await fetch(`/api/banking/match/movement/${movementId}`, {
+      const res = await fetch(apiUrl(`/api/banking/match/movement/${movementId}`), {
         method: "DELETE",
         headers: authHeader(),
       });
@@ -136,7 +136,7 @@ export function BankingPage() {
   async function setMovementCategory(movementId: string, category: string | null) {
     setError(null);
     try {
-      const res = await fetch(`/api/banking/movements/${movementId}/category`, {
+      const res = await fetch(apiUrl(`/api/banking/movements/${movementId}/category`), {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
