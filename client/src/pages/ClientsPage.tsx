@@ -5,6 +5,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { ResponsiveStackTable } from "../components/ResponsiveStackTable";
 import { TableSkeleton } from "../components/TableSkeleton";
@@ -111,10 +112,11 @@ export function ClientsPage() {
             </button>
             <button
               type="button"
-              className="btn-touch-outline shrink-0"
+              className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-ink-950 px-4 text-sm font-medium text-white shadow-sm disabled:opacity-50 sm:min-h-10 sm:w-auto md:px-5"
               onClick={exportCsv}
               disabled={loading || data.length === 0}
             >
+              <FileDown className="size-5 shrink-0" aria-hidden={true} />
               Exportar CSV
             </button>
           </div>

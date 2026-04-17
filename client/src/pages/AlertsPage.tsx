@@ -5,6 +5,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { FileBarChart2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatMxDateTime } from "../lib/format-date";
 import { apiGet, authHeader } from "../lib/api";
@@ -115,10 +116,11 @@ export function AlertsPage() {
               />
               <button
                 type="button"
-                className="btn-touch-primary whitespace-normal sm:max-w-[14rem] disabled:opacity-60"
+                className="btn-touch-primary inline-flex items-center justify-center gap-2 whitespace-normal sm:max-w-[16rem] disabled:opacity-60"
                 onClick={() => void downloadPdf()}
                 disabled={pdfLoading}
               >
+                <FileBarChart2 className="size-5 shrink-0" aria-hidden={true} />
                 {pdfLoading ? "Generando PDF…" : "PDF salud financiera"}
               </button>
             </div>

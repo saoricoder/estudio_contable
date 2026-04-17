@@ -5,6 +5,8 @@
  */
 
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { FileBarChart2 } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -103,6 +105,18 @@ export function AnalyticsPage() {
         <p className="mt-1 text-sm text-slate-600">
           Ingresos conciliados (créditos), declaraciones por mes y estado de facturas recurrentes.
         </p>
+        <div className="mt-3">
+          <Link
+            to="/alerts"
+            className="inline-flex min-h-[44px] max-w-full items-center justify-center gap-2 rounded-xl bg-ink-950 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-slate-900 sm:min-h-10 sm:inline-flex sm:px-5"
+          >
+            <FileBarChart2 className="size-5 shrink-0" aria-hidden={true} />
+            Reporte PDF · Salud financiera
+          </Link>
+          <p className="mt-1.5 text-xs text-slate-500">
+            Abre Alertas para elegir el mes (YYYY-MM) y descargar el PDF ejecutivo.
+          </p>
+        </div>
       </div>
 
       <div className="min-w-0 overflow-hidden rounded-2xl border bg-white p-4 shadow-sm sm:p-5 xl:p-6">

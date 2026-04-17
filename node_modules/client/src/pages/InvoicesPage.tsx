@@ -6,8 +6,10 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { FileDown } from "lucide-react";
 import { ResponsiveStackTable } from "../components/ResponsiveStackTable";
 import { TableSkeleton } from "../components/TableSkeleton";
+import { buildRecurringInvoicesCsv, downloadUtf8Csv } from "../lib/export-csv";
 import { apiGet, apiPost, authHeader } from "../lib/api";
 import { datetimeLocalToIso, formatMxDateTime, isoToDatetimeLocal } from "../lib/format-date";
 
@@ -137,17 +139,53 @@ export function InvoicesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function exportInvoicesCsv() {
+    if (items.length === 0) {
+      toast.error("No hay facturas para exportar. Pulsa Refrescar primero.");
+      return;
+    }
+    const day = new Date().toISOString().slice(0, 10);
+    const rows = items.map((inv) => ({
+      id: inv.id,
+      clientName: String(inv.client?.name ?? ""),
+      clientRfc: String(inv.client?.rfc ?? ""),
+      concept: String(inv.concept ?? ""),
+      amount: inv.amount,
+      currency: String(inv.currency ?? "MXN"),
+      frequency: String(inv.frequency ?? ""),
+      paymentStatus: String(inv.paymentStatus ?? ""),
+      pendingBalance: inv.pendingBalance != null ? inv.pendingBalance : "",
+      nextRunDate: inv.nextRunDate != null ? String(inv.nextRunDate) : "",
+      active: Boolean(inv.active),
+    }));
+    downloadUtf8Csv(`facturas-recurrentes-${day}.csv`, buildRecurringInvoicesCsv(rows));
+    toast.success("CSV descargado (UTF-8 con BOM, listo para Excel).");
+  }
+
   return (
     <div className="grid max-w-full gap-4">
       <div className="rounded-2xl border bg-white p-4 shadow-sm sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="text-lg font-semibold text-slate-900">Facturas recurrentes</div>
-            <div className="text-sm text-slate-600">Crear y listar recurrentes.</div>
+            <div className="text-sm text-slate-600">
+              Crear y listar recurrentes. Exporta el listado a CSV para Excel o otros sistemas.
+            </div>
           </div>
-          <button type="button" className="btn-touch-outline shrink-0" onClick={load}>
-            Refrescar
-          </button>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            <button type="button" className="btn-touch-outline shrink-0" onClick={load}>
+              Refrescar
+            </button>
+            <button
+              type="button"
+              className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-ink-950 px-4 text-sm font-medium text-white shadow-sm disabled:opacity-50 sm:min-h-10 sm:w-auto md:px-5"
+              onClick={exportInvoicesCsv}
+              disabled={loading || items.length === 0}
+            >
+              <FileDown className="size-5 shrink-0" aria-hidden={true} />
+              Exportar CSV
+            </button>
+          </div>
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-6">

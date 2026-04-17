@@ -193,7 +193,7 @@ Base URL local: `http://localhost:4000`. En Vercel, la misma ruta bajo el domini
 | `PATCH` | `/api/clients/:id` | Actualización parcial. |
 | `DELETE` | `/api/clients/:id` | Elimina cliente. |
 
-**Exportación CSV (MVP+):** no hay endpoint dedicado; en la pantalla **Clientes** el botón **Exportar CSV** genera el archivo en el navegador a partir del listado ya cargado (ver [Funcionalidad adicional (CSV clientes)](#funcionalidad-adicional-csv-clientes)).
+**Exportación CSV (valor agregado):** sin endpoint dedicado; en **Clientes** y **Facturación** los botones **Exportar CSV** generan el archivo en el navegador con **UTF-8 + BOM** (ver [Aportación extra](#aportación-extra-valor-agregado)).
 
 ### Nómina (JWT)
 
@@ -272,37 +272,37 @@ Rutas principales (React Router): sin sesión solo se muestra **login**; con JWT
 | Ruta | Módulo |
 |------|--------|
 | `/` | Redirección a `/clients` |
-| `/clients` | Clientes (CRUD + exportar CSV) |
-| `/analytics` | Dashboard de métricas |
+| `/clients` | Clientes (CRUD + exportar CSV UTF-8) |
+| `/analytics` | Dashboard de métricas (Recharts) + acceso al PDF de salud financiera |
 | `/payroll` | Nómina quincenal |
-| `/invoices` | Facturación recurrente |
+| `/invoices` | Facturación recurrente (+ exportar CSV UTF-8) |
 | `/banking` | Conciliación bancaria |
 | `/declarations` | Declaraciones |
 | `/alerts` | Alertas y PDF de salud financiera |
 
 Footer: **Contadores Unidos MX** / **Estudio Contable Eficiente**; créditos **saoricoder**.
 
-## Funcionalidad adicional (CSV clientes)
+## Aportación extra (valor agregado)
 
-Además de los requisitos del MVP, se añadió una mejora orientada al trabajo diario del despacho.
+Más allá del MVP base, el producto incorpora tres pilares que refuerzan el posicionamiento de **Contadores Unidos MX** como despacho orientado a datos y a la entrega profesional.
 
-### (1) Qué se agregó
+### Pilar 1: Motor de analytics proactivo
 
-- En **Clientes**, botón **Exportar CSV** junto a **Cargar**.
-- Descarga un archivo `clientes-YYYY-MM-DD.csv` con columnas: `id`, `nombre`, `rfc`, `regimen`, `email`, `telefono`.
-- El archivo usa **UTF-8 con BOM** y separador coma, con **escape** correcto de comillas y saltos de línea en celdas.
+- **Qué es:** Dashboard visual con **Recharts** (barras combinadas y gráfico de torta) que muestra **ingresos mensuales** (movimientos bancarios **conciliados** a crédito), **actividad fiscal** (conteo de declaraciones por mes y estatus) y **facturas recurrentes** (pagadas vs pendientes).
+- **Valor comercial:** Permite al estudio ofrecer **consultoría basada en datos** (tendencias de ingreso, carga de cumplimiento, cartera de cobro), no solo captura contable aislada.
+- **Implementación:** El frontend consume **`GET /api/analytics/dashboard`**, donde el servicio `AnalyticsService` en el **servidor** agrega datos desde Prisma (movimientos conciliados, declaraciones del año fiscal, facturas recurrentes). La capa React compone series para Recharts y adapta layout responsive.
 
-### (2) Por qué es útil comercialmente
+### Pilar 2: Reportes de salud financiera en PDF
 
-- Los estudios suelen **compartir la cartera** con Excel, filtros, cruce con otros sistemas o archivo histórico **sin depender del SaaS** en ese momento.
-- Evita copiar y pegar manual desde la tabla; reduce errores en RFC y nombres con acentos.
-- No exige permisos extra en servidor ni almacenamiento de archivos: se hace **en el cliente** sobre los datos ya autorizados por el JWT.
+- **Qué es:** Generación **dinámica** de un reporte ejecutivo **mensual** (ingresos vs gastos en movimientos conciliados, desglose por categoría, tendencia a 3 meses, top movimientos), descargable desde el módulo **Alertas** (y acceso rápido desde **Analytics** hacia Alertas).
+- **Valor comercial:** Refuerza la **imagen profesional** del estudio ante clientes finales: entregable listo para enviar o archivar (PDF estándar, tipografía y bloques de KPI).
+- **Implementación:** El PDF **no** se genera con *jspdf* ni *html2canvas* en el navegador; se construye en el **backend** con **PDFKit** (`server/src/domain/reports/pdf/financialHealthPdf.ts`), alimentado por `FinancialHealthService`, y se expone en **`GET /api/reports/financial-health.pdf?month=YYYY-MM`** con `Content-Type: application/pdf`. El cliente descarga el binario con el token JWT. En la UI, el botón incluye icono y estado de carga para evitar dobles envíos.
 
-### (3) Cómo se implementó
+### Pilar 3: Sistema de exportación inteligente (CSV para contadores)
 
-- Utilidad pura en **`client/src/lib/export-csv.ts`**: `buildClientsCsv(rows)` arma el texto CSV; `downloadUtf8Csv(filename, body)` crea un `Blob` con BOM, enlace temporal y disparo de descarga.
-- **`ClientsPage.tsx`**: al pulsar el botón se usa el estado `data` actual (misma vista que la tabla); si no hay filas, se muestra aviso con **Sonner**.
-- **Sin cambios de API ni Prisma**: misma seguridad que ver el listado en pantalla; si se necesitara export masivo server-side en el futuro, se podría añadir `GET /api/clients/export.csv` reutilizando la misma lógica de filas en el dominio.
+- **Qué es:** Exportación del listado de **clientes** y de **facturas recurrentes** a archivos **CSV** con codificación **UTF-8 con BOM** y escape de celdas (comillas, saltos de línea), optimizado para **Microsoft Excel en Windows** y tildes en nombres/RFC.
+- **Valor comercial:** **Interoperabilidad** con Excel, auditorías, cruces con otros ERP o cargas a portales fiscales; reduce trabajo manual y errores de copiado.
+- **Implementación:** Módulo **`client/src/lib/export-csv.ts`**: funciones `escapeCsvCell`, `buildClientsCsv`, `buildRecurringInvoicesCsv`, `downloadUtf8Csv` (BOM + `Blob` + descarga). Botones destacados con icono **Exportar CSV** en **Clientes** e **Invoices**; sin nuevos endpoints: los datos ya cargados vía API autenticada.
 
 ## Créditos
 

@@ -54,3 +54,55 @@ export function buildClientsCsv(rows: ClientCsvRow[]): string {
   ];
   return lines.join("\r\n");
 }
+
+/** Fila de factura recurrente para interoperabilidad con Excel / otros ERP. */
+export type RecurringInvoiceCsvRow = {
+  id: string;
+  clientName: string;
+  clientRfc: string;
+  concept: string;
+  amount: string | number;
+  currency: string;
+  frequency: string;
+  paymentStatus: string;
+  pendingBalance: string | number;
+  nextRunDate: string;
+  active: boolean | string;
+};
+
+export function buildRecurringInvoicesCsv(rows: RecurringInvoiceCsvRow[]): string {
+  const header = [
+    "id",
+    "cliente",
+    "rfc_cliente",
+    "concepto",
+    "monto",
+    "moneda",
+    "frecuencia",
+    "estado_pago",
+    "saldo_pendiente",
+    "proxima_ejecucion",
+    "activa",
+  ];
+  const lines = [
+    header.map(escapeCsvCell).join(","),
+    ...rows.map((r) =>
+      [
+        r.id,
+        r.clientName,
+        r.clientRfc,
+        r.concept,
+        r.amount,
+        r.currency,
+        r.frequency,
+        r.paymentStatus,
+        r.pendingBalance,
+        r.nextRunDate,
+        typeof r.active === "boolean" ? (r.active ? "si" : "no") : r.active,
+      ]
+        .map(escapeCsvCell)
+        .join(","),
+    ),
+  ];
+  return lines.join("\r\n");
+}
